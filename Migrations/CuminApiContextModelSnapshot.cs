@@ -17,26 +17,32 @@ namespace cumin_api.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64)
                 .HasAnnotation("ProductVersion", "5.0.6");
 
-            modelBuilder.Entity("cumin_api.Models.ActiveSprintProject", b =>
+            modelBuilder.Entity("cumin_api.Models.Epic", b =>
                 {
-                    b.Property<int>("ProjectId")
-                        .HasColumnType("int");
-
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("SprintId")
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("ProjectId")
                         .HasColumnType("int");
 
-                    b.HasKey("ProjectId");
+                    b.Property<int>("Row")
+                        .HasColumnType("int");
 
-                    b.HasAlternateKey("Id");
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime(6)");
 
-                    b.HasIndex("SprintId")
-                        .IsUnique();
+                    b.Property<string>("Title")
+                        .HasColumnType("longtext");
 
-                    b.ToTable("ActiveSprintProject");
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("Epic");
                 });
 
             modelBuilder.Entity("cumin_api.Models.Issue", b =>
@@ -85,6 +91,32 @@ namespace cumin_api.Migrations
                     b.ToTable("Issues");
                 });
 
+            modelBuilder.Entity("cumin_api.Models.Path", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("FromEpicId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ToEpicId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FromEpicId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("ToEpicId");
+
+                    b.ToTable("Path");
+                });
+
             modelBuilder.Entity("cumin_api.Models.Project", b =>
                 {
                     b.Property<int>("Id")
@@ -101,6 +133,9 @@ namespace cumin_api.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ActiveSprintId")
+                        .IsUnique();
 
                     b.ToTable("Projects");
                 });
@@ -140,9 +175,6 @@ namespace cumin_api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int?>("ActiveSprintId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -165,6 +197,9 @@ namespace cumin_api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<int?>("ActiveProjectId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Password")
                         .HasColumnType("longtext");
 
@@ -175,6 +210,8 @@ namespace cumin_api.Migrations
                     b.HasKey("Id");
 
                     b.HasAlternateKey("Username");
+
+                    b.HasIndex("ActiveProjectId");
 
                     b.ToTable("Users");
                 });
@@ -200,23 +237,15 @@ namespace cumin_api.Migrations
                     b.ToTable("UserProjects");
                 });
 
-            modelBuilder.Entity("cumin_api.Models.ActiveSprintProject", b =>
+            modelBuilder.Entity("cumin_api.Models.Epic", b =>
                 {
                     b.HasOne("cumin_api.Models.Project", "Project")
-                        .WithOne("ActiveSprint")
-                        .HasForeignKey("cumin_api.Models.ActiveSprintProject", "ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("cumin_api.Models.Sprint", "Sprint")
-                        .WithOne("ActiveSprint")
-                        .HasForeignKey("cumin_api.Models.ActiveSprintProject", "SprintId")
+                        .WithMany("Epics")
+                        .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Project");
-
-                    b.Navigation("Sprint");
                 });
 
             modelBuilder.Entity("cumin_api.Models.Issue", b =>
@@ -248,6 +277,42 @@ namespace cumin_api.Migrations
                     b.Navigation("Resolver");
 
                     b.Navigation("Sprint");
+                });
+
+            modelBuilder.Entity("cumin_api.Models.Path", b =>
+                {
+                    b.HasOne("cumin_api.Models.Epic", "FromEpic")
+                        .WithMany("PathsFrom")
+                        .HasForeignKey("FromEpicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("cumin_api.Models.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("cumin_api.Models.Epic", "ToEpic")
+                        .WithMany("PathsTo")
+                        .HasForeignKey("ToEpicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FromEpic");
+
+                    b.Navigation("Project");
+
+                    b.Navigation("ToEpic");
+                });
+
+            modelBuilder.Entity("cumin_api.Models.Project", b =>
+                {
+                    b.HasOne("cumin_api.Models.Sprint", "ActiveSprint")
+                        .WithOne("ActiveForProject")
+                        .HasForeignKey("cumin_api.Models.Project", "ActiveSprintId");
+
+                    b.Navigation("ActiveSprint");
                 });
 
             modelBuilder.Entity("cumin_api.Models.ProjectInvitation", b =>
@@ -290,6 +355,15 @@ namespace cumin_api.Migrations
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("cumin_api.Models.User", b =>
+                {
+                    b.HasOne("cumin_api.Models.Project", "ActiveProject")
+                        .WithMany("ActiveForUser")
+                        .HasForeignKey("ActiveProjectId");
+
+                    b.Navigation("ActiveProject");
+                });
+
             modelBuilder.Entity("cumin_api.Models.UserProject", b =>
                 {
                     b.HasOne("cumin_api.Models.Project", "Project")
@@ -309,9 +383,18 @@ namespace cumin_api.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("cumin_api.Models.Epic", b =>
+                {
+                    b.Navigation("PathsFrom");
+
+                    b.Navigation("PathsTo");
+                });
+
             modelBuilder.Entity("cumin_api.Models.Project", b =>
                 {
-                    b.Navigation("ActiveSprint");
+                    b.Navigation("ActiveForUser");
+
+                    b.Navigation("Epics");
 
                     b.Navigation("Issues");
 
@@ -324,7 +407,7 @@ namespace cumin_api.Migrations
 
             modelBuilder.Entity("cumin_api.Models.Sprint", b =>
                 {
-                    b.Navigation("ActiveSprint");
+                    b.Navigation("ActiveForProject");
 
                     b.Navigation("Issues");
                 });

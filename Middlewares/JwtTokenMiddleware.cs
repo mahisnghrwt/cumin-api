@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using cumin_api.Others;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -10,40 +11,22 @@ using System.Threading.Tasks;
 
 namespace cumin_api.Middlewares {
     public class JwtTokenMiddleware {
-        RequestDelegate next;
-        SecurityConfiguration securityConfig;
+        private readonly RequestDelegate next;
 
-        public JwtTokenMiddleware(RequestDelegate next, IOptions<SecurityConfiguration> securityConfig) {
-            this.securityConfig = securityConfig.Value;
+        public JwtTokenMiddleware(RequestDelegate next) {
             this.next = next;
         }
 
-        public async Task Invoke(HttpContext context) {
+        public async Task Invoke(HttpContext context, TokenHelper tokenHelper) {
             var token = context.Request.Headers["Authorization"].ToString().Split(" ")?.Last();
-            if (token != null)
-                AttachTokenToContext(context, token);
-            await next(context);
-        }
-
-        public void AttachTokenToContext(HttpContext context, string token) {
-            try {
-
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(securityConfig.Secret);
-                var validationParameters = new TokenValidationParameters {
-                    ValidateAudience = false,
-                    ValidateIssuer = false,
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key)
-                };
-
-                tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
-                var jwtToken = (JwtSecurityToken)validatedToken;
-                var userId = jwtToken.Claims.First(x => x.Type == "userId").Value;
-                context.Items["userId"] = userId;
-            } catch {
-
+            if (token != null) {
+                var claims = tokenHelper.ExtractClaimsFromToken(token);
+                if (claims != null) {
+                    var userId = claims.First(x => x.Type == "userId").Value;
+                    context.Items["userId"] = userId;
+                }
             }
+            await next(context);
         }
     }
 }

@@ -127,17 +127,18 @@ namespace cumin_api.Services {
             if (!BelongsTo(pid, uid))
                 throw new SimpleException(UNAUTHORIZED_MSG);
 
-            var activeSprint = dbContext.ActiveSprintProject
-                .Include(x => x.Sprint)
-                .ThenInclude(x => x.Issues)
-                .FirstOrDefault(x => x.ProjectId == pid)
-                .Sprint;
+            //var activeSprint = dbContext.ActiveSprintProject
+            //    .Include(x => x.Sprint)
+            //    .ThenInclude(x => x.Issues)
+            //    .FirstOrDefault(x => x.ProjectId == pid)
+            //    .Sprint;
 
-            foreach(var issue in activeSprint.Issues) {
-                issue.Sprint = null;
-            }
+            //foreach(var issue in activeSprint.Issues) {
+            //    issue.Sprint = null;
+            //}
 
-            return activeSprint;
+            //return activeSprint;
+            return null;
         }
 
         public IEnumerable<Sprint> ActivateSprintForProject(int sid, int pid, int uid) {
@@ -145,37 +146,39 @@ namespace cumin_api.Services {
                 throw new SimpleException(UNAUTHORIZED_MSG);
 
             // remove the already active sprint from this project first
-            var prev = dbContext.ActiveSprintProject
-                .Include(x => x.Sprint)
-                .FirstOrDefault(x => x.ProjectId == pid);
+            //Sprint prev = new Sprint();
+            ////var prev = dbContext.ActiveSprintProject
+            ////    .Include(x => x.Sprint)
+            ////    .FirstOrDefault(x => x.ProjectId == pid);
 
-            Sprint old = null;
+            //Sprint old = null;
 
-            if (prev != null) {
-                old = new Sprint(prev.Sprint);
-                prev.SprintId = sid;
-            }
-            else {
-                prev = dbContext.ActiveSprintProject.Add(new ActiveSprintProject { SprintId = sid, ProjectId = pid }).Entity;
-            }
-            dbContext.SaveChanges();
+            //if (prev != null) {
+            //    old = new Sprint(prev.Sprint);
+            //    prev.SprintId = sid;
+            //}
+            //else {
+            //    //prev = dbContext.ActiveSprintProject.Add(new ActiveSprintProject { SprintId = sid, ProjectId = pid }).Entity;
+            //}
+            //dbContext.SaveChanges();
 
-            dbContext.Entry(prev)
-                .Reference(x => x.Sprint)
-                .Load();
+            //dbContext.Entry(prev)
+            //    .Reference(x => x.Sprint)
+            //    .Load();
 
-            // just to remove the cycle in resulting json
-            prev.Sprint.ActiveSprint = null;
+            //// just to remove the cycle in resulting json
+            //prev.Sprint.ActiveSprint = null;
 
-            return new List<Sprint>() { old, prev.Sprint};
+            //return new List<Sprint>() { old, prev.Sprint};
+            return null;
         }
 
         public void UnactivateSprintForProject(int pid, int uid) {
             if (!BelongsTo(pid, uid))
                 throw new SimpleException(UNAUTHORIZED_MSG);
 
-            var sprint = dbContext.ActiveSprintProject.FirstOrDefault(x => x.ProjectId == pid);
-            dbContext.ActiveSprintProject.Remove(sprint);
+            //var sprint = dbContext.ActiveSprintProject.FirstOrDefault(x => x.ProjectId == pid);
+            //dbContext.ActiveSprintProject.Remove(sprint);
         }
     }
 }

@@ -8,6 +8,11 @@
         ISSUE_CREATED,
         ISSUE_UPDATED,
         ISSUE_DELETED,
-        ACTIVE_SPRINT_UPDATED
+        ACTIVE_SPRINT_UPDATED,
+        EPIC_CREATED,
+        EPIC_UPDATED,
+        EPIC_DELETED,
+        PATH_CREATED,
+        PATH_DELETED
     }
 }

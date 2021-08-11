@@ -1,7 +1,6 @@
 ﻿using cumin_api.Attributes;
 using cumin_api.Enums;
 using cumin_api.Models;
-using cumin_api.Models.SocketMsgs;
 using cumin_api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -41,14 +40,14 @@ namespace cumin_api.Controllers {
             }
 
             // forward the invite to the invitee using socket
-            var socketMsgs = new List<Object>();
-            socketMsgs.Add(new GeneralSockMsg { 
-                id = invite.InviteeId, 
-                type = (int)CommonEnums.WEBSOCKET_MESSAGE_TYPE.TARGET, 
-                eventName = (int)SOCKET_EVENT.INVITATION_RECEIVED, 
-                payload = invite 
-            });
-            HttpContext.Items[SOCK_MSG] = socketMsgs;
+            //var socketMsgs = new List<Object>();
+            //socketMsgs.Add(new GeneralSockMsg { 
+            //    id = invite.InviteeId, 
+            //    type = (int)CommonEnums.WEBSOCKET_MESSAGE_TYPE.TARGET, 
+            //    eventName = (int)SOCKET_EVENT.INVITATION_RECEIVED, 
+            //    payload = invite 
+            //});
+            //HttpContext.Items[SOCK_MSG] = socketMsgs;
 
             return Ok(invite);
         }
@@ -73,27 +72,27 @@ namespace cumin_api.Controllers {
             }
 
 
-            var socketMsgs = new List<Object>();
-            socketMsgs.Add(new RPCSockMsg { 
-                payload = new { 
-                    function = (int)CommonEnums.RPC_FUNCTION.CONNNECTION_SERVICE_SUBSCRIBE_PROJECTS, 
-                    parameters = new { 
-                        uid = invite.InviteeId, 
-                        projects = new int[] { 
-                            invite.ProjectId 
-                        } 
-                    } 
-                } 
-            });
-            // return info about the user to other members of project
-            // socketMsgs.Add(new { id = invite.ProjectId, type = (int)CommonEnums.WEBSOCKET_MESSAGE_TYPE.BROADCAST, eventName = SOCKET_EVENT.NEW_USER_JOINED, payload = invite });
-            socketMsgs.Add(new GeneralSockMsg {
-                id = invite.ProjectId,
-                type = (int)CommonEnums.WEBSOCKET_MESSAGE_TYPE.BROADCAST,
-                eventName = (int)SOCKET_EVENT.NEW_USER_JOINED,
-                payload = invite
-            });
-            HttpContext.Items[SOCK_MSG] = socketMsgs;
+            //var socketMsgs = new List<Object>();
+            //socketMsgs.Add(new RPCSockMsg { 
+            //    payload = new { 
+            //        function = (int)CommonEnums.RPC_FUNCTION.CONNNECTION_SERVICE_SUBSCRIBE_PROJECTS, 
+            //        parameters = new { 
+            //            uid = invite.InviteeId, 
+            //            projects = new int[] { 
+            //                invite.ProjectId 
+            //            } 
+            //        } 
+            //    } 
+            //});
+            //// return info about the user to other members of project
+            //// socketMsgs.Add(new { id = invite.ProjectId, type = (int)CommonEnums.WEBSOCKET_MESSAGE_TYPE.BROADCAST, eventName = SOCKET_EVENT.NEW_USER_JOINED, payload = invite });
+            //socketMsgs.Add(new GeneralSockMsg {
+            //    id = invite.ProjectId,
+            //    type = (int)CommonEnums.WEBSOCKET_MESSAGE_TYPE.BROADCAST,
+            //    eventName = (int)SOCKET_EVENT.NEW_USER_JOINED,
+            //    payload = invite
+            //});
+            //HttpContext.Items[SOCK_MSG] = socketMsgs;
 
             // return project info to the accepting user
             return Ok(invite.Project);
@@ -116,15 +115,15 @@ namespace cumin_api.Controllers {
                 return Unauthorized(new { message = e.Message });
             }
 
-            // return info about the user to other members of project
-            var socketMsgs = new List<Object>();
-            socketMsgs.Add(new GeneralSockMsg { 
-                id = invite.InviterId, 
-                type = (int)CommonEnums.WEBSOCKET_MESSAGE_TYPE.TARGET, 
-                eventName = (int)SOCKET_EVENT.INVITATION_REJECTED, 
-                payload = invite 
-            });
-            HttpContext.Items[SOCK_MSG] = socketMsgs;
+            //// return info about the user to other members of project
+            //var socketMsgs = new List<Object>();
+            //socketMsgs.Add(new GeneralSockMsg { 
+            //    id = invite.InviterId, 
+            //    type = (int)CommonEnums.WEBSOCKET_MESSAGE_TYPE.TARGET, 
+            //    eventName = (int)SOCKET_EVENT.INVITATION_REJECTED, 
+            //    payload = invite 
+            //});
+            //HttpContext.Items[SOCK_MSG] = socketMsgs;
 
             return Ok(invite);
         }

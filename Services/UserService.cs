@@ -59,7 +59,7 @@ namespace cumin_api.Services {
         }
 
         public User GetUser(int userId) {
-            return dbContext.Users.FirstOrDefault(user => user.Id == userId);
+            return dbContext.Users.DefaultIfEmpty(null).FirstOrDefault(user => user.Id == userId);
         }
     }
 }

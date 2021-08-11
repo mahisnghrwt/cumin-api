@@ -12,26 +12,25 @@ namespace cumin_api {
         public DbSet<UserProject> UserProjects { get; set; }
         public DbSet<ProjectInvitation> ProjectInvitations { get; set; }
         public DbSet<Issue> Issues { get; set; }
-        public DbSet<ActiveSprintProject> ActiveSprintProject { get; set; }
+        //public DbSet<ActiveSprintProject> ActiveSprintProject { get; set; }
         public DbSet<Sprint> Sprints { get; set; }
-
 
         public CuminApiContext(DbContextOptions<CuminApiContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
         // why not just add a ? activeSprintId optinal field in the "Project" entity??
         //  A project can have only one active sprint
-            modelBuilder.Entity<ActiveSprintProject>().HasKey(x => new { x.ProjectId});
-            modelBuilder.Entity<ActiveSprintProject>().HasAlternateKey(x => x.Id);
-            modelBuilder.Entity<ActiveSprintProject>().Property(x => x.Id).ValueGeneratedOnAdd();
-            modelBuilder.Entity<ActiveSprintProject>()
-                .HasOne(x => x.Project)
-                .WithOne(x => x.ActiveSprint)
-                .HasForeignKey<ActiveSprintProject>(x => x.ProjectId);
-            modelBuilder.Entity<ActiveSprintProject>()
-                .HasOne(x => x.Sprint)
-                .WithOne(x => x.ActiveSprint)
-                .HasForeignKey<ActiveSprintProject>(x => x.SprintId);
+            //modelBuilder.Entity<ActiveSprintProject>().HasKey(x => new { x.ProjectId});
+            //modelBuilder.Entity<ActiveSprintProject>().HasAlternateKey(x => x.Id);
+            //modelBuilder.Entity<ActiveSprintProject>().Property(x => x.Id).ValueGeneratedOnAdd();
+            //modelBuilder.Entity<ActiveSprintProject>()
+            //    .HasOne(x => x.Project)
+            //    .WithOne(x => x.ActiveSprint)
+            //    .HasForeignKey<ActiveSprintProject>(x => x.ProjectId);
+            //modelBuilder.Entity<ActiveSprintProject>()
+            //    .HasOne(x => x.Sprint)
+            //    .WithOne(x => x.ActiveSprint)
+            //    .HasForeignKey<ActiveSprintProject>(x => x.SprintId);
 
 
 
@@ -43,6 +42,7 @@ namespace cumin_api {
                 .WithMany(x => x.Sprints)
                 .HasForeignKey(x => x.ProjectId)
                 .IsRequired(true);
+            
 
             modelBuilder.Entity<Issue>().HasKey(x => x.Id);
             modelBuilder.Entity<Issue>().Property(x => x.Id).ValueGeneratedOnAdd();
@@ -105,6 +105,36 @@ namespace cumin_api {
                 .HasOne(pi => pi.Project)
                 .WithMany(p => p.ProjectInvitations)
                 .HasForeignKey(pi => pi.ProjectId);
+
+             modelBuilder.Entity<Project>()
+                .HasOne(x => x.ActiveSprint)
+                .WithOne(x => x.ActiveForProject)
+                .HasForeignKey<Project>(x => x.ActiveSprintId)
+                .IsRequired(false);
+
+            modelBuilder.Entity<User>()
+                .HasOne(x => x.ActiveProject)
+                .WithMany(x => x.ActiveForUser)
+                .HasForeignKey(x => x.ActiveProjectId)
+                .IsRequired(false);
+
+            modelBuilder.Entity<Epic>()
+                .HasOne(x => x.Project)
+                .WithMany(x => x.Epics)
+                .HasForeignKey(x => x.ProjectId)
+                .IsRequired(true);
+
+            modelBuilder.Entity<Path>()
+               .HasOne(x => x.FromEpic)
+               .WithMany(x => x.PathsFrom)
+               .HasForeignKey(x => x.FromEpicId)
+               .IsRequired(true);
+
+            modelBuilder.Entity<Path>()
+                .HasOne(x => x.ToEpic)
+                .WithMany(x => x.PathsTo)
+                .HasForeignKey(x => x.ToEpicId)
+                .IsRequired(true);
         }
     }
 }

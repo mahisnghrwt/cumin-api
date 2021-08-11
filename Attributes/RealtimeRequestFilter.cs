@@ -1,4 +1,6 @@
-﻿using cumin_api.Services;
+﻿using cumin_api.Enums;
+using cumin_api.Models.Socket;
+using cumin_api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System;
@@ -11,15 +13,40 @@ using System.Threading.Tasks;
 namespace cumin_api.Attributes {
   
     public class RealtimeRequestFilter: ResultFilterAttribute {
-        private readonly IWebSocketService webSockService;
+        private readonly SockService sockService;
 
-        public RealtimeRequestFilter(IWebSocketService webSockService) {
-            this.webSockService = webSockService;
+        public RealtimeRequestFilter(SockService sockService) {
+            this.sockService = sockService;
+            //this.webSockService = webSockService;
         }
 
         override public async Task OnResultExecutionAsync(ResultExecutingContext context, ResultExecutionDelegate next) {
             if (!(context.Result is EmptyResult)) {
-                await webSockService.Send(context.HttpContext.Items["sockMsg"]);
+                ObjectResult result = context.Result as ObjectResult;
+                if (result == null || result.StatusCode != 200) {
+                    //   context.Cancel = true;
+                    await next();
+                    return;
+                }
+                try {
+                    SocketMessageHeader sockHeader = (SocketMessageHeader)context.HttpContext.Items["SocketMessageHeader"];
+                    Object sockMessage = context.HttpContext.Items["SocketMessage"];
+
+                    if (sockHeader.broadcastType == (int)SOCKET_MESSAGE_TYPE.BROADCAST) {
+                        await sockService.Broadcast(sockHeader.targetId, sockMessage, new HashSet<int>());
+                    }
+                    else if (sockHeader.broadcastType == (int)SOCKET_MESSAGE_TYPE.TARGET) {
+                        await sockService.Target(sockHeader.targetId, sockMessage);
+                    }
+                    else {
+                        throw new Exception();
+                    }
+
+                } catch (Exception e) {
+                    throw e;
+                }
+
+                //await webSockService.Send(context.HttpContext.Items["sockMsg"]);
                 await next();
             } else {
                 context.Cancel = true;

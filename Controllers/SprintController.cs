@@ -1,35 +1,31 @@
 ﻿using cumin_api.Attributes;
 using cumin_api.Enums;
 using cumin_api.Models;
-using cumin_api.Models.SocketMsgs;
-using cumin_api.Services;
+using cumin_api.Models.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace cumin_api.Controllers {
     
-    [Route("api/v1/[controller]")]
+    [Route("api/v1/project/{projectId}/[controller]")]
     [ApiController]
     [CustomAuthorization]
     public class SprintController: ControllerBase {
-        private readonly ISprintService sprintService;
-        public SprintController(ISprintService sprintService) {
+        private readonly Services.v2.SprintService sprintService;
+        public SprintController(Services.v2.SprintService sprintService) {
             this.sprintService = sprintService;
         }
 
-        [HttpGet("project/{pid}")]
-        public IActionResult GetSprintsByProjectId(int pid) {
+        [ServiceFilter(typeof(Filters.ProjectUrlBasedAuthorizationFilter))]
+        [HttpGet]
+        public IActionResult GetAllByProjectAsDict(int projectId) {
             var uid = Helper.GetUid(HttpContext);
             if (uid == -1)
                 return Unauthorized(new { message = Helper.NO_UID_ERROR_MSG });
 
             try {
-                var sprints = (List<Sprint>)sprintService.GetByProjectId(pid, uid);
-                return Ok(sprints);
+                return Ok(sprintService.GetAllSprintsWithIssuesByProject(projectId).ToDictionary(x => x.Id.ToString()));
             } catch (SimpleException e) {
                 return Unauthorized(new { message = e.Message });
             } catch (DbUpdateException e) {
@@ -37,63 +33,61 @@ namespace cumin_api.Controllers {
             }
         }
 
+
+        [ServiceFilter(typeof(RealtimeRequestFilter))]
+        [ServiceFilter(typeof(Filters.ProjectUrlBasedAuthorizationFilter))]
         [HttpPost]
-        [ServiceFilter(typeof(RealtimeRequestFilter))]
-        public IActionResult Create(Sprint request) {
+        public IActionResult CreateSprint([FromBody] SprintCreationDto dto, int projectId) {
             var uid = Helper.GetUid(HttpContext);
             if (uid == -1)
                 return Unauthorized(new { message = Helper.NO_UID_ERROR_MSG });
 
-            Sprint sprint;
+            if (projectId != dto.ProjectId) {
+                return BadRequest();
+            }
+
+            Sprint sprint = new Sprint { Title = dto.Title, ProjectId = dto.ProjectId};
+            Sprint sprintCreated;
 
             try {
-                sprint = sprintService.Create(request, uid);
+                sprintCreated = sprintService.Add(sprint);
             } catch (SimpleException e) {
                 return Unauthorized(new { message = e.Message });
             } catch (DbUpdateException e) {
                 return Unauthorized(new { message = e.Message });
             }
 
-            var sockMsgs = new List<Object>();
-            sockMsgs.Add(new GeneralSockMsg {
-                id = sprint.ProjectId,
-                type = (int)CommonEnums.WEBSOCKET_MESSAGE_TYPE.BROADCAST,
-                eventName = (int)SOCKET_EVENT.SPRINT_CREATED,
-                payload = sprint
-            });
-            HttpContext.Items[Helper.SOCK_MSG] = sockMsgs;
+            Models.Socket.SocketMessageHeader sockHeader = new Models.Socket.SocketMessageHeader { broadcastType = (int)SOCKET_MESSAGE_TYPE.BROADCAST, targetId = dto.ProjectId };
+            Models.Socket.SocketMessage sockMessage = new Models.Socket.SocketMessage { eventName = (int)Enums.SOCKET_EVENT.SPRINT_CREATED, payload = sprintCreated };
 
-            return Ok(sprint);
+            HttpContext.Items["SocketMessageHeader"] = sockHeader;
+            HttpContext.Items["SocketMessage"] = sockMessage;
+
+            return Ok(sprintCreated);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{sprintId}")]
+        [ServiceFilter(typeof(Filters.ProjectUrlBasedAuthorizationFilter))]
         [ServiceFilter(typeof(RealtimeRequestFilter))]
-        public IActionResult DeleteSprintById(int id) {
+        public IActionResult DeleteSprintById(int projectId, int sprintId) {
             var uid = Helper.GetUid(HttpContext);
             if (uid == -1)
                 return Unauthorized(new { message = Helper.NO_UID_ERROR_MSG });
-
-            Sprint sprint;
-
             try {
-                sprint = sprintService.DeleteById(id, uid);
+                sprintService.DeleteInProject(sprintId, projectId);
             } catch (SimpleException e) {
                 return Unauthorized(new { message = e.Message });
             } catch (DbUpdateException e) {
                 return Unauthorized(new { message = e.Message });
             }
 
-            var sockMsgs = new List<Object>();
-            sockMsgs.Add(new GeneralSockMsg {
-                id = sprint.ProjectId,
-                type = (int)CommonEnums.WEBSOCKET_MESSAGE_TYPE.BROADCAST,
-                eventName = (int)SOCKET_EVENT.SPRINT_DELETED,
-                payload = sprint
-            });
-            HttpContext.Items[Helper.SOCK_MSG] = sockMsgs;
+            Models.Socket.SocketMessageHeader sockHeader = new Models.Socket.SocketMessageHeader { broadcastType = (int)SOCKET_MESSAGE_TYPE.BROADCAST, targetId = projectId };
+            Models.Socket.SocketMessage sockMessage = new Models.Socket.SocketMessage { eventName = (int)Enums.SOCKET_EVENT.SPRINT_DELETED, payload = sprintId };
+
+            HttpContext.Items["SocketMessageHeader"] = sockHeader;
+            HttpContext.Items["SocketMessage"] = sockMessage;
 
             return Ok();
         }
-
     }
 }

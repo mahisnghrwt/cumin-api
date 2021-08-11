@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace cumin_api.Models {
@@ -20,6 +21,8 @@ namespace cumin_api.Models {
         public int? ResolverId { get; set; }
         public User Resolver { get; set; }
         public int? SprintId { get; set; }
+        
+        [JsonIgnore]
         public Sprint Sprint { get; set; }
 
         public Issue() { }
