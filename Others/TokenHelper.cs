@@ -13,7 +13,7 @@ namespace cumin_api.Others {
         public TokenHelper(IOptions<SecurityConfiguration> securityConfig) {
             this.securityConfig = securityConfig.Value;
         }
-        public IEnumerable<System.Security.Claims.Claim> ExtractClaimsFromToken(string token) {
+        public IEnumerable<Claim> ExtractClaimsFromToken(string token) {
             if (token == null)
                 return null;
 
@@ -30,7 +30,8 @@ namespace cumin_api.Others {
                 tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
                 var jwtToken = (JwtSecurityToken)validatedToken;
                 return jwtToken.Claims;
-            } catch (Exception e){
+            } 
+            catch (Exception e){
                 
             }
 

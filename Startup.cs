@@ -82,18 +82,13 @@ namespace cumin_api {
                 app.UseDeveloperExceptionPage();
             }
             // bookmarked this
-            // app.UseHttpsRedirection();
-
-            app.UseForwardedHeaders(new ForwardedHeadersOptions {
-                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-            });
-
+             app.UseHttpsRedirection();
 
             app.UseRouting();
             app.UseWebSockets();
             app.UseMiddleware<WebsocketHandlerMiddleware>();
 
-            app.UseCors(AllowSpecificOriginCorsPolicy);
+             app.UseCors(AllowSpecificOriginCorsPolicy);
 
             app.UseAuthorization();
 

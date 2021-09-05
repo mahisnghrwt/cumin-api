@@ -21,9 +21,12 @@ namespace cumin_api.Models {
         public int? ResolverId { get; set; }
         public User Resolver { get; set; }
         public int? SprintId { get; set; }
+        public int? EpicId { get; set; }
         
         [JsonIgnore]
         public Sprint Sprint { get; set; }
+        [JsonIgnore]
+        public Epic Epic { get; set; }
 
         public Issue() { }
         public Issue(int id, string title, string desc, DateTime createdAt, 

@@ -1,6 +1,6 @@
 ﻿using cumin_api.Models;
 using cumin_api.Others;
-using cumin_api.Services;
+//using cumin_api.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -14,20 +14,22 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using cumin_api.Services.v2;
+using System.Security.Claims;
 
 namespace cumin_api.Middlewares {
     public class WebsocketHandlerMiddleware {
         private readonly RequestDelegate next;
-        private readonly StateManager stateManager;
+        private readonly Services.StateManager stateManager;
 
         private const uint BODY_BUFFER_LENGTH = 2048;
 
-        public WebsocketHandlerMiddleware(RequestDelegate next, StateManager stateManager) {
+        public WebsocketHandlerMiddleware(RequestDelegate next, Services.StateManager stateManager) {
             this.next = next;
             this.stateManager = stateManager;
         }
 
-        public async Task InvokeAsync(HttpContext context, TokenHelper tokenHelper, Services.v2.UserService userService) {
+        public async Task InvokeAsync(HttpContext context, TokenHelper tokenHelper, UserService userService) {
             // if not a websocket request, forward it in the request pipeline
             if (context.WebSockets.IsWebSocketRequest == false) {
                 await next(context);
@@ -60,14 +62,15 @@ namespace cumin_api.Middlewares {
                     return;
                 }
 
-                bool isValidToken = ValidateToken(tokenHelper, userService, token, context, out userId);
+                string remoteIp = context.Connection.RemoteIpAddress.ToString();
+                userId = ValidateToken(tokenHelper, userService, token, remoteIp);
 
                 // this is just a patch could be bad in long run
                 var user_ = userService.FindById(userId);
                 // now ^ has active project id
                 // ==============================================
 
-                if (isValidToken == false) {
+                if (user_ == null || userId == -1) {
                     return;
                 }
 
@@ -94,24 +97,25 @@ namespace cumin_api.Middlewares {
             }
         }
         
-        private bool ValidateToken(TokenHelper tokenHelper, Services.v2.UserService userService, string token, in HttpContext context, out int userId) {
-            IEnumerable<System.Security.Claims.Claim> claims = tokenHelper.ExtractClaimsFromToken(token);
-            bool uidParsed = Int32.TryParse(claims.DefaultIfEmpty(null).FirstOrDefault(x => x.Type == "userId").Value, out userId);
-            // either "userId" claim does not exist in the token, or could not be parsed into int
-            if (uidParsed == false)
-                return false;
+        private int ValidateToken(TokenHelper tokenHelper, UserService userService, string token, string remoteIp) {
+            int userId = -1;
+            IEnumerable<Claim> claims = tokenHelper.ExtractClaimsFromToken(token);
+            if (Int32.TryParse(claims.DefaultIfEmpty(null).FirstOrDefault(x => x.Type == "userId").Value, out userId)) {
+                // check if the claimed user exists
+                if (userService.FindById(userId) == null)
+                    userId = -1;
 
-            // check if the claimed user exists
-            if (userService.FindById(userId) == null)
-                return false;
-
-            // check if the websocket req originates from the claim ip address
-            string claimedRemoteIp = claims.DefaultIfEmpty(null).FirstOrDefault(x => x.Type == "remoteIp").Value;
-            if (claimedRemoteIp == null || claimedRemoteIp != context.Connection.RemoteIpAddress.ToString()) {
-                return false;
+                // check if the websocket req originates from the claim ip address
+                //string claimedRemoteIp = claims.DefaultIfEmpty(null).FirstOrDefault(x => x.Type == "remoteIp").Value;
+                //if (claimedRemoteIp == null || claimedRemoteIp != remoteIp) {
+                //    return -1;
+                //}
+                //else {
+                //    return userId;
+                //}
             }
 
-            return true;
+            return userId;
         }
 
         private async Task HandleClientRequest(WebSocket webSocket, int userId) {

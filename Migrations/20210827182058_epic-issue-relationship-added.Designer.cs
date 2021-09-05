@@ -9,8 +9,8 @@ using cumin_api;
 namespace cumin_api.Migrations
 {
     [DbContext(typeof(CuminApiContext))]
-    [Migration("20210803003740_paths-added")]
-    partial class pathsadded
+    [Migration("20210827182058_epic-issue-relationship-added")]
+    partial class epicissuerelationshipadded
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -42,7 +42,7 @@ namespace cumin_api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProjectId");
+                    b.HasAlternateKey("ProjectId", "Row");
 
                     b.ToTable("Epic");
                 });
@@ -58,6 +58,9 @@ namespace cumin_api.Migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
+
+                    b.Property<int?>("EpicId")
+                        .HasColumnType("int");
 
                     b.Property<int>("ProjectId")
                         .HasColumnType("int");
@@ -81,6 +84,8 @@ namespace cumin_api.Migrations
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("EpicId");
 
                     b.HasIndex("ProjectId");
 
@@ -252,6 +257,10 @@ namespace cumin_api.Migrations
 
             modelBuilder.Entity("cumin_api.Models.Issue", b =>
                 {
+                    b.HasOne("cumin_api.Models.Epic", "Epic")
+                        .WithMany("Issues")
+                        .HasForeignKey("EpicId");
+
                     b.HasOne("cumin_api.Models.Project", "Project")
                         .WithMany("Issues")
                         .HasForeignKey("ProjectId")
@@ -271,6 +280,8 @@ namespace cumin_api.Migrations
                     b.HasOne("cumin_api.Models.Sprint", "Sprint")
                         .WithMany("Issues")
                         .HasForeignKey("SprintId");
+
+                    b.Navigation("Epic");
 
                     b.Navigation("Project");
 
@@ -387,6 +398,8 @@ namespace cumin_api.Migrations
 
             modelBuilder.Entity("cumin_api.Models.Epic", b =>
                 {
+                    b.Navigation("Issues");
+
                     b.Navigation("PathsFrom");
 
                     b.Navigation("PathsTo");

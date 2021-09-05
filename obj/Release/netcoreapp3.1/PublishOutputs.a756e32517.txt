@@ -1,6 +1,4 @@
-C:\Users\Mahi\Repos\cumin-api\bin\Release\netcoreapp3.1\publish\RealtimeDbServer.exe
 C:\Users\Mahi\Repos\cumin-api\bin\Release\netcoreapp3.1\publish\cumin-api.exe
-C:\Users\Mahi\Repos\cumin-api\bin\Release\netcoreapp3.1\publish\RealtimeDbServer.runtimeconfig.json
 C:\Users\Mahi\Repos\cumin-api\bin\Release\netcoreapp3.1\publish\appsettings.Development.json
 C:\Users\Mahi\Repos\cumin-api\bin\Release\netcoreapp3.1\publish\appsettings.json
 C:\Users\Mahi\Repos\cumin-api\bin\Release\netcoreapp3.1\publish\cumin-api.dll
@@ -48,6 +46,4 @@ C:\Users\Mahi\Repos\cumin-api\bin\Release\netcoreapp3.1\publish\runtimes\win-x86
 C:\Users\Mahi\Repos\cumin-api\bin\Release\netcoreapp3.1\publish\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.pdb
 C:\Users\Mahi\Repos\cumin-api\bin\Release\netcoreapp3.1\publish\runtimes\win\lib\netstandard2.0\System.Runtime.Caching.dll
 C:\Users\Mahi\Repos\cumin-api\bin\Release\netcoreapp3.1\publish\runtimes\win\lib\netstandard2.0\System.Security.Cryptography.ProtectedData.dll
-C:\Users\Mahi\Repos\cumin-api\bin\Release\netcoreapp3.1\publish\RealtimeDbServer.dll
-C:\Users\Mahi\Repos\cumin-api\bin\Release\netcoreapp3.1\publish\RealtimeDbServer.pdb
 C:\Users\Mahi\Repos\cumin-api\bin\Release\netcoreapp3.1\publish\cumin-api.deps.json

@@ -22,7 +22,9 @@ namespace cumin_api.Models.DTOs {
         public string Description { get; set; }
         public int? ResolverId { get; set; }
         public int? SprintId { get; set; }
-        
+        public int? EpicId { get; set; }
+
+
         //[JsonIgnore]
         //public Sprint Sprint { get; set; }
 

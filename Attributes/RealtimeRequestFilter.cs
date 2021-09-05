@@ -23,10 +23,13 @@ namespace cumin_api.Attributes {
         override public async Task OnResultExecutionAsync(ResultExecutingContext context, ResultExecutionDelegate next) {
             if (!(context.Result is EmptyResult)) {
                 ObjectResult result = context.Result as ObjectResult;
-                if (result == null || result.StatusCode != 200) {
-                    //   context.Cancel = true;
-                    await next();
-                    return;
+
+                if (result == null) {
+                    if ((context.Result as StatusCodeResult).StatusCode != 200) {
+                        //   context.Cancel = true;
+                        await next();
+                        return;
+                    }
                 }
                 try {
                     SocketMessageHeader sockHeader = (SocketMessageHeader)context.HttpContext.Items["SocketMessageHeader"];

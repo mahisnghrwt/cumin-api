@@ -68,6 +68,12 @@ namespace cumin_api {
                 .HasForeignKey(x => x.SprintId)
                 .IsRequired(false);
 
+            modelBuilder.Entity<Issue>()
+            .HasOne(x => x.Epic)
+            .WithMany(x => x.Issues)
+            .HasForeignKey(x => x.EpicId)
+            .IsRequired(false);
+
 
             modelBuilder.Entity<User>().HasAlternateKey(x => x.Username);
 
@@ -123,6 +129,13 @@ namespace cumin_api {
                 .WithMany(x => x.Epics)
                 .HasForeignKey(x => x.ProjectId)
                 .IsRequired(true);
+
+            modelBuilder.Entity<Epic>()
+            .HasMany(x => x.Issues)
+            .WithOne(x => x.Epic);
+
+            modelBuilder.Entity<Epic>()
+                .HasAlternateKey(x => new { x.ProjectId, x.Row });
 
             modelBuilder.Entity<Path>()
                .HasOne(x => x.FromEpic)

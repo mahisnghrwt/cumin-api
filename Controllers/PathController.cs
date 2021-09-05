@@ -26,7 +26,7 @@ namespace cumin_api.Controllers {
         [HttpGet]
         public IActionResult GetAllPathsInProject(int projectId) {
             try {
-                var paths = pathService.GetAllPathsInProject(projectId);
+                var paths = pathService.GetAllPathsInProject(projectId).ToDictionary(x =>x.Id.ToString());
                 return Ok(paths);
             } catch {
                 return Unauthorized();
