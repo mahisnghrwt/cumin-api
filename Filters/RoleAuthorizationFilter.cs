@@ -15,10 +15,11 @@ namespace cumin_api.Filters {
         }
 
         public void OnAuthorization(AuthorizationFilterContext context) {
-            int uid = (int)context.HttpContext.Items["userId"];
-            var user = userService.FindById(uid);
-            if (user.Role != UserRole.ProjectManager)
+            int uid = Convert.ToInt32(context.HttpContext.Items["userId"]);
+            int pid = Convert.ToInt32(context.HttpContext.Request.RouteValues["projectId"]);
+            if (userService.GetRoleInProject(uid, pid) != UserRole.ProjectManager) {
                 context.Result = new UnauthorizedResult();
+            }
         }
     }
 }

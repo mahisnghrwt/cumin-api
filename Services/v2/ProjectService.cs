@@ -1,4 +1,5 @@
-﻿using cumin_api.Models;
+﻿using cumin_api.Enums;
+using cumin_api.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,21 @@ using System.Threading.Tasks;
 namespace cumin_api.Services.v2 {
     public class ProjectService : DbService<Project> {
         public ProjectService(CuminApiContext context) : base(context) { }
+
+        public Project Init(Project project, int uid) {
+            // create project
+            var project_ = Add(project);
+
+            // assign creator as Project Manager
+            var userProject = new UserProject { ProjectId = project_.Id, UserId = uid, UserRole =  UserRole.ProjectManager};
+            context.UserProjects.Add(userProject);
+
+            // create default empty roadmap
+            Roadmap roadmap = new Roadmap{ ProjectId = project_.Id, Title = "Main"};
+            SaveChanges();
+
+            return project_;
+        }
 
         public Project AddProjectAndLinkCreator(Project project, int userId) {
             // add the user

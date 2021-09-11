@@ -18,6 +18,7 @@ using cumin_api.Attributes;
 using cumin_api.Others;
 using System.Net;
 using Microsoft.AspNetCore.HttpOverrides;
+using cumin_api.Filters;
 
 namespace cumin_api {
     public class Startup {
@@ -69,7 +70,8 @@ namespace cumin_api {
 
 
             // filters
-            services.AddScoped<Filters.ProjectUrlBasedAuthorizationFilter>();
+            services.AddScoped<ProjectUrlBasedAuthorizationFilter>();
+            services.AddScoped<RoleAuthorizationFilter>();
 
             // web socket related
             services.AddScoped<RealtimeRequestFilter, RealtimeRequestFilter>();

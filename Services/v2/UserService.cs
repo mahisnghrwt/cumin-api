@@ -15,5 +15,10 @@ namespace cumin_api.Services.v2 {
         public User GetWithActiveProject(int userId) {
             return dbSet.Include(x => x.ActiveProject).FirstOrDefault(x => x.Id == userId);
         }
+
+        public string GetRoleInProject(int uid, int pid) {
+            var up = context.UserProjects.FirstOrDefault(up => up.ProjectId == pid && up.UserId == uid);
+            return up == null ? null : up.UserRole;
+        }
     }
 }

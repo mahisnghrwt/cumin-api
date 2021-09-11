@@ -15,7 +15,6 @@ namespace cumin_api.Models {
         public int Row { get; set; }
         public int ProjectId { get; set; }
 
-
         [JsonIgnore]
         public Project Project { get; set; }
         [JsonIgnore]
@@ -24,6 +23,8 @@ namespace cumin_api.Models {
         public ICollection<Path> PathsTo { get; set; }
         [JsonIgnore]
         public ICollection<Issue> Issues { get; set; }
+        [JsonIgnore]
+        public ICollection<RoadmapEpic> RoadmapEpics { get; set; }
 
 
         public Epic() { }

@@ -12,8 +12,13 @@ namespace cumin_api {
         public DbSet<UserProject> UserProjects { get; set; }
         public DbSet<ProjectInvitation> ProjectInvitations { get; set; }
         public DbSet<Issue> Issues { get; set; }
-        //public DbSet<ActiveSprintProject> ActiveSprintProject { get; set; }
         public DbSet<Sprint> Sprints { get; set; }
+        public DbSet<Roadmap> Roadmaps { get; set; }
+        public DbSet<Epic> Epics { get; set; }
+        public DbSet<RoadmapEpic> RoadmapEpics { get; set; }
+        public DbSet<Path> Paths { get; set; }
+        public DbSet<RoadmapPath> RoadmapPaths { get; set; }
+
 
         public CuminApiContext(DbContextOptions<CuminApiContext> options) : base(options) { }
 
@@ -76,11 +81,11 @@ namespace cumin_api {
 
 
             modelBuilder.Entity<User>().HasAlternateKey(x => x.Username);
-            modelBuilder.Entity<User>().Property(u => u.Role).IsRequired();
 
             modelBuilder.Entity<UserProject>().HasKey(t => new { t.UserId, t.ProjectId });
             modelBuilder.Entity<UserProject>().HasAlternateKey(x => x.Id);
             modelBuilder.Entity<UserProject>().Property(x => x.Id).ValueGeneratedOnAdd();
+            modelBuilder.Entity<UserProject>().Property(u => u.UserRole).IsRequired();
 
             modelBuilder.Entity<UserProject>()
                 .HasOne(up => up.Project)
@@ -149,6 +154,37 @@ namespace cumin_api {
                 .WithMany(x => x.PathsTo)
                 .HasForeignKey(x => x.ToEpicId)
                 .IsRequired(true);
+
+            modelBuilder.Entity<RoadmapEpic>()
+                .HasKey(t => new { t.EpicId, t.RoadmapId });
+
+            modelBuilder.Entity<RoadmapEpic>()
+                .HasOne(t => t.Epic)
+                .WithMany(t => t.RoadmapEpics)
+                .HasForeignKey(t => t.EpicId);
+
+            modelBuilder.Entity<RoadmapEpic>()
+                .HasOne(t => t.Roadmap)
+                .WithMany(t => t.RoadmapEpics)
+                .HasForeignKey(t => t.RoadmapId);
+
+            modelBuilder.Entity<RoadmapPath>()
+            .HasKey(t => new { t.PathId, t.RoadmapId });
+
+            modelBuilder.Entity<RoadmapPath>()
+                .HasOne(t => t.Path)
+                .WithMany(t => t.RoadmapPaths)
+                .HasForeignKey(t => t.PathId);
+
+            modelBuilder.Entity<RoadmapPath>()
+                .HasOne(t => t.Roadmap)
+                .WithMany(t => t.RoadmapPaths)
+                .HasForeignKey(t => t.RoadmapId);
+
+            modelBuilder.Entity<Roadmap>()
+                .HasOne(t => t.Creator)
+                .WithOne(t => t.Roadmap)
+                .HasForeignKey<Roadmap>(t => t.CreatorId);
         }
     }
 }
