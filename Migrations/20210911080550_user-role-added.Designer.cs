@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using cumin_api;
 
 namespace cumin_api.Migrations
 {
     [DbContext(typeof(CuminApiContext))]
-    partial class CuminApiContextModelSnapshot : ModelSnapshot
+    [Migration("20210911080550_user-role-added")]
+    partial class userroleadded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -209,7 +211,6 @@ namespace cumin_api.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("Role")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("Username")

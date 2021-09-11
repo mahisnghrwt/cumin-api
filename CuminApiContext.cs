@@ -76,6 +76,7 @@ namespace cumin_api {
 
 
             modelBuilder.Entity<User>().HasAlternateKey(x => x.Username);
+            modelBuilder.Entity<User>().Property(u => u.Role).IsRequired();
 
             modelBuilder.Entity<UserProject>().HasKey(t => new { t.UserId, t.ProjectId });
             modelBuilder.Entity<UserProject>().HasAlternateKey(x => x.Id);

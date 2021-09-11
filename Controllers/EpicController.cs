@@ -1,5 +1,6 @@
 ﻿using cumin_api.Attributes;
 using cumin_api.Enums;
+using cumin_api.Filters;
 using cumin_api.Models;
 using cumin_api.Models.DTOs;
 using cumin_api.Models.Socket;
@@ -22,8 +23,8 @@ namespace cumin_api.Controllers {
             this.epicService = epicService;
         }
 
-        // create epic
-        [ServiceFilter(typeof(Filters.ProjectUrlBasedAuthorizationFilter))]
+        [ServiceFilter(typeof(ProjectUrlBasedAuthorizationFilter))]
+        [ServiceFilter(typeof(RoleAuthorizationFilter))]
         [ServiceFilter(typeof(RealtimeRequestFilter))]
         [HttpPost]
         public IActionResult CreateEpic([FromBody] EpicCreationDto dto, int projectId) {
@@ -45,7 +46,7 @@ namespace cumin_api.Controllers {
         }
 
         // get all epics in project
-        [ServiceFilter(typeof(Filters.ProjectUrlBasedAuthorizationFilter))]
+        [ServiceFilter(typeof(ProjectUrlBasedAuthorizationFilter))]
         [HttpGet]
         public IActionResult GetAllEpicsInProject(int projectId) {
             try {
@@ -56,8 +57,8 @@ namespace cumin_api.Controllers {
             }
         }
 
-        // patch epic (dynamic)
-        [ServiceFilter(typeof(Filters.ProjectUrlBasedAuthorizationFilter))]
+        [ServiceFilter(typeof(ProjectUrlBasedAuthorizationFilter))]
+        [ServiceFilter(typeof(RoleAuthorizationFilter))]
         [ServiceFilter(typeof(RealtimeRequestFilter))]
         [HttpPatch("{epicId}")]
         public IActionResult PatchEpicDuration(int epicId, int projectId, [FromBody] EpicDurationPatchDto dto) {
@@ -94,8 +95,8 @@ namespace cumin_api.Controllers {
             }
         }
 
-        // delete epic by id
-        [ServiceFilter(typeof(Filters.ProjectUrlBasedAuthorizationFilter))]
+        [ServiceFilter(typeof(ProjectUrlBasedAuthorizationFilter))]
+        [ServiceFilter(typeof(RoleAuthorizationFilter))]
         [ServiceFilter(typeof(RealtimeRequestFilter))]
         [HttpDelete("{epicId}")]
         public IActionResult DeleteEpicById(int epicId, int projectId) {

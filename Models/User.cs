@@ -13,9 +13,9 @@ namespace cumin_api.Models {
         [JsonIgnore]
         public string Password { get; set; }
         public int? ActiveProjectId { get; set; }
-
-        // Navigation properties
         public Project ActiveProject { get; set; }
+        public string Role { get; set; }
+
         
         [JsonIgnore]
         public ICollection<UserProject> UserProjects { get; set; }
