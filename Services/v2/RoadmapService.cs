@@ -13,7 +13,9 @@ namespace cumin_api.Services.v2 {
             return dbSet
                 .AsNoTracking()
                 .Include(r => r.RoadmapEpics)
+                .ThenInclude(re => re.Epic)
                 .Include(r => r.RoadmapPaths)
+                .ThenInclude(rp => rp.Path)
                 .FirstOrDefault(r => r.Id == roadmapId);
         }
 
@@ -24,7 +26,7 @@ namespace cumin_api.Services.v2 {
                 .FirstOrDefault(r => r.ProjectId == projectId && r.CreatorId == null);
         }
 
-        public async Task<Roadmap> CloneMain(int targetRoadmapId) {
+        public async Task<Roadmap> CloneMainAsync(int targetRoadmapId) {
             // get the target roadmap
             var targetRoadmap = FindById(targetRoadmapId);
             if (targetRoadmap == null) return null;
@@ -34,13 +36,13 @@ namespace cumin_api.Services.v2 {
             var mainRoadmap = GetMainInProject(projectId);
             if (mainRoadmap == null) return null;
 
-            return await Clone(targetRoadmapId, mainRoadmap.Id, projectId);
+            return await CloneAsync(targetRoadmapId, mainRoadmap.Id, projectId);
         }
 
         // Not sure if projectID is necessary :/
-        public async Task<Roadmap> Clone(int targetRoadmapId, int sourceRoadmapId, int projectId) {
+        public async Task<Roadmap> CloneAsync(int targetRoadmapId, int sourceRoadmapId, int projectId) {
             // get the target roadmap
-            var targetRoadmap = Find(r => r.Id == targetRoadmapId && r.ProjectId == projectId);
+            Roadmap targetRoadmap = dbSet.Include(r => r.RoadmapEpics).Include(r => r.RoadmapPaths).FirstOrDefault(r => r.Id == targetRoadmapId && r.ProjectId == projectId);
             if (targetRoadmap == null) return null;
 
             // delete current epics and paths in target roadmap
@@ -52,7 +54,7 @@ namespace cumin_api.Services.v2 {
                 context.Entry(roadmapPath).State = EntityState.Deleted;
             }
 
-            Roadmap sourceRoadmap = Find(r => r.Id == sourceRoadmapId && r.ProjectId == projectId);
+            Roadmap sourceRoadmap = dbSet.Include(r => r.RoadmapEpics).Include(r => r.RoadmapPaths).FirstOrDefault(r => r.Id == sourceRoadmapId && r.ProjectId == projectId);
             if (sourceRoadmap == null) return null;
 
             // clone all epics

@@ -14,9 +14,9 @@ namespace cumin_api.Models {
         public int? CreatorId { get; set; }
         [JsonIgnore]
         public User Creator { get; set; }
-        [JsonIgnore]
+        //[JsonIgnore]
         public ICollection<RoadmapEpic> RoadmapEpics { get; set; }
-        [JsonIgnore]
+        //[JsonIgnore]
         public ICollection<RoadmapPath> RoadmapPaths { get; set; }
     }
 }

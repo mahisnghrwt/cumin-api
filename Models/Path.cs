@@ -11,7 +11,6 @@ namespace cumin_api.Models {
         public int ToEpicId { get; set; }
         public int ProjectId { get; set; }
 
-
         [JsonIgnore]
         public Epic FromEpic { get; set; }
         [JsonIgnore]

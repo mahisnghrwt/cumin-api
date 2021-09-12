@@ -130,6 +130,9 @@ namespace cumin_api {
                 .HasForeignKey(x => x.ActiveProjectId)
                 .IsRequired(false);
 
+            modelBuilder.Entity<Epic>().HasKey(t => t.Id);
+            modelBuilder.Entity<Epic>().Property(t => t.Id).ValueGeneratedOnAdd();
+
             modelBuilder.Entity<Epic>()
                 .HasOne(x => x.Project)
                 .WithMany(x => x.Epics)

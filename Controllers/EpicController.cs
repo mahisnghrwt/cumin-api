@@ -91,6 +91,7 @@ namespace cumin_api.Controllers {
 
                 return Ok(patched);
             } catch (Exception e){
+                throw e;
                 return Unauthorized();
             }
         }
