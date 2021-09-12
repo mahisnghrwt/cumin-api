@@ -12,6 +12,14 @@ namespace cumin_api.Services.v2 {
             return dbSet.FirstOrDefault(x => x.Id == id);
         }
 
+        public async Task<Epic> AddToRoadmap(Epic epic, int roadmapId) {
+            var epicT = dbSet.Add(epic);
+            context.RoadmapEpics.Add(new RoadmapEpic { EpicId = epicT.Entity.Id, RoadmapId = roadmapId });
+            await context.SaveChangesAsync();
+
+            return epicT.Entity;
+        }
+
         public IEnumerable<Epic> GetAllInProject(int pid) {
             return dbSet.Where(x => x.ProjectId == pid);
         }
