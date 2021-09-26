@@ -30,7 +30,7 @@ namespace cumin_api.Controllers {
         public IActionResult CreateEpic([FromBody] EpicCreationDto dto, int projectId) {
             try {
                 int uid = Convert.ToInt32(HttpContext.Items["userId"]);
-                Epic epic = new Epic { StartDate = dto.StartDate, EndDate = dto.EndDate, Row = dto.Row, Title = dto.Title, ProjectId = projectId };
+                Epic epic = new Epic { StartDate = dto.StartDate, EndDate = dto.EndDate, Title = dto.Title, ProjectId = projectId };
                 var epic_ = epicService.Add(epic);
 
                 SocketMessageHeader sockHeader = new SocketMessageHeader { broadcastType = (int)SOCKET_MESSAGE_TYPE.BROADCAST, targetId = projectId };

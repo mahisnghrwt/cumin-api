@@ -14,5 +14,6 @@ namespace cumin_api.Models {
         public Roadmap Roadmap { get; set; }
         public int EpicId { get; set; }
         public Epic Epic { get; set; }
+        public int Row { get; set; }
     }
 }

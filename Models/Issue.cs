@@ -15,10 +15,13 @@ namespace cumin_api.Models {
         public string Type { get; set; }
         public string Status { get; set; } = "Todo";
         public int ProjectId { get; set; }
+        [JsonIgnore]
         public Project Project { get; set; }
         public int ReporterId { get; set; }
+        [JsonIgnore]
         public User Reporter { get; set; }
         public int? ResolverId { get; set; }
+        [JsonIgnore]
         public User Resolver { get; set; }
         public int? SprintId { get; set; }
         public int? EpicId { get; set; }

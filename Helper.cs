@@ -17,7 +17,26 @@ namespace cumin_api {
             }
         }
         
-
+        public static void Mapper<T>(Object source, ref T target) {
+            var props = source.GetType().GetProperties();
+            foreach (var prop in props) {
+                string propName = prop.Name;
+                Object propVal = prop.GetValue(source);
+                if (propVal == null)
+                    continue;
+                if (prop.PropertyType == typeof(string)) {
+                    if ((string)propVal != "EMPTY")
+                        typeof(T).GetProperty(propName).SetValue(target, (string)propVal);
+                } else {
+                    // Get value from Nullable<T>
+                    var nullableType = prop.PropertyType;
+                    var method = nullableType.GetProperty("HasValue").GetMethod;
+                    bool propHasValue = (bool)method.Invoke(propVal, null);
+                    if (propHasValue)
+                        typeof(T).GetProperty(propName).SetValue(target, nullableType.GetProperty("Value").GetValue(propVal));
+                }
+            }
+        }
 
     }
 }

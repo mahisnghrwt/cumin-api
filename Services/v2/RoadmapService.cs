@@ -19,6 +19,23 @@ namespace cumin_api.Services.v2 {
                 .FirstOrDefault(r => r.Id == roadmapId);
         }
 
+        public IEnumerable<Roadmap> GetAllFromProject(int projectId) {
+            return dbSet
+                    .AsNoTracking()
+                    .Where(r => r.ProjectId == projectId);
+        }
+
+        public IEnumerable<Roadmap> GetAllInDetailFromProject(int projectId) {
+            return dbSet
+                    .AsNoTracking()
+                    .Include(r => r.RoadmapEpics)
+                    .ThenInclude(re => re.Epic)
+                    .ThenInclude(e => e.Issues)
+                    .Include(r => r.RoadmapPaths)
+                    .ThenInclude(rp => rp.Path)
+                    .Where(r => r.ProjectId == projectId);
+        }
+
         public Roadmap GetMainInProject(int projectId) {
             return dbSet
                 .Include(r => r.RoadmapEpics)

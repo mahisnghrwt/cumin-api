@@ -23,13 +23,13 @@ namespace cumin_api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<string>("Color")
+                        .HasColumnType("longtext");
+
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime(6)");
 
                     b.Property<int>("ProjectId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Row")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("StartDate")
@@ -40,7 +40,7 @@ namespace cumin_api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasAlternateKey("ProjectId", "Row");
+                    b.HasIndex("ProjectId");
 
                     b.ToTable("Epics");
                 });
@@ -186,6 +186,9 @@ namespace cumin_api.Migrations
                     b.Property<int>("ProjectId")
                         .HasColumnType("int");
 
+                    b.Property<int>("Rows")
+                        .HasColumnType("int");
+
                     b.Property<string>("Title")
                         .HasColumnType("longtext");
 
@@ -199,18 +202,25 @@ namespace cumin_api.Migrations
 
             modelBuilder.Entity("cumin_api.Models.RoadmapEpic", b =>
                 {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
                     b.Property<int>("EpicId")
                         .HasColumnType("int");
 
                     b.Property<int>("RoadmapId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Id")
+                    b.Property<int>("Row")
                         .HasColumnType("int");
 
-                    b.HasKey("EpicId", "RoadmapId");
+                    b.HasKey("Id");
 
-                    b.HasIndex("RoadmapId");
+                    b.HasIndex("EpicId");
+
+                    b.HasIndex("RoadmapId", "EpicId", "Row")
+                        .IsUnique();
 
                     b.ToTable("RoadmapEpics");
                 });
@@ -320,7 +330,8 @@ namespace cumin_api.Migrations
                 {
                     b.HasOne("cumin_api.Models.Epic", "Epic")
                         .WithMany("Issues")
-                        .HasForeignKey("EpicId");
+                        .HasForeignKey("EpicId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("cumin_api.Models.Project", "Project")
                         .WithMany("Issues")

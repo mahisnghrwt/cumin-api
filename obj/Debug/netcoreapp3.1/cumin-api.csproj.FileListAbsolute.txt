@@ -63,3 +63,5 @@ C:\Users\Mahi\Repos\cumin-api\bin\Debug\netcoreapp3.1\Pomelo.EntityFrameworkCore
 C:\Users\Mahi\Repos\cumin-api\bin\Debug\netcoreapp3.1\Humanizer.dll
 C:\Users\Mahi\Repos\cumin-api\bin\Debug\netcoreapp3.1\Microsoft.EntityFrameworkCore.Design.dll
 C:\Users\Mahi\Repos\cumin-api\obj\Debug\netcoreapp3.1\cumin-api.csproj.AssemblyReference.cache
+C:\Users\Mahi\Repos\cumin-api\bin\Debug\netcoreapp3.1\AutoMapper.dll
+C:\Users\Mahi\Repos\cumin-api\bin\Debug\netcoreapp3.1\AutoMapper.Extensions.Microsoft.DependencyInjection.dll

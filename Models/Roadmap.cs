@@ -12,11 +12,10 @@ namespace cumin_api.Models {
         public string Title { get; set; }
         public int ProjectId { get; set; }
         public int? CreatorId { get; set; }
+        public int Rows { get; set; } = 0;
         [JsonIgnore]
         public User Creator { get; set; }
-        //[JsonIgnore]
         public ICollection<RoadmapEpic> RoadmapEpics { get; set; }
-        //[JsonIgnore]
         public ICollection<RoadmapPath> RoadmapPaths { get; set; }
     }
 }

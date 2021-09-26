@@ -77,6 +77,7 @@ namespace cumin_api {
             .HasOne(x => x.Epic)
             .WithMany(x => x.Issues)
             .HasForeignKey(x => x.EpicId)
+            .OnDelete(DeleteBehavior.SetNull)
             .IsRequired(false);
 
 
@@ -133,34 +134,35 @@ namespace cumin_api {
             modelBuilder.Entity<Epic>().HasKey(t => t.Id);
             modelBuilder.Entity<Epic>().Property(t => t.Id).ValueGeneratedOnAdd();
 
-            modelBuilder.Entity<Epic>()
-                .HasOne(x => x.Project)
-                .WithMany(x => x.Epics)
-                .HasForeignKey(x => x.ProjectId)
-                .IsRequired(true);
+            //modelBuilder.Entity<Epic>()
+            //    .HasOne(x => x.Project)
+            //    .WithMany(x => x.Epics)
+            //    .HasForeignKey(x => x.ProjectId)
+            //    .IsRequired(true);
 
             modelBuilder.Entity<Epic>()
             .HasMany(x => x.Issues)
             .WithOne(x => x.Epic);
 
-            modelBuilder.Entity<Epic>()
-                .HasAlternateKey(x => new { x.ProjectId, x.Row });
-
             modelBuilder.Entity<Path>()
                .HasOne(x => x.FromEpic)
                .WithMany(x => x.PathsFrom)
                .HasForeignKey(x => x.FromEpicId)
+               .OnDelete(DeleteBehavior.Cascade)
                .IsRequired(true);
 
             modelBuilder.Entity<Path>()
                 .HasOne(x => x.ToEpic)
                 .WithMany(x => x.PathsTo)
                 .HasForeignKey(x => x.ToEpicId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired(true);
 
+            modelBuilder.Entity<RoadmapEpic>().HasKey(t => t.Id);
+            modelBuilder.Entity<RoadmapEpic>().Property(t => t.Id).ValueGeneratedOnAdd();
             modelBuilder.Entity<RoadmapEpic>()
-                .HasKey(t => new { t.EpicId, t.RoadmapId });
-
+                .HasIndex(t => new { t.RoadmapId, t.EpicId, t.Row })
+                .IsUnique();
             modelBuilder.Entity<RoadmapEpic>()
                 .HasOne(t => t.Epic)
                 .WithMany(t => t.RoadmapEpics)
@@ -182,7 +184,8 @@ namespace cumin_api {
             modelBuilder.Entity<RoadmapPath>()
                 .HasOne(t => t.Roadmap)
                 .WithMany(t => t.RoadmapPaths)
-                .HasForeignKey(t => t.RoadmapId);
+                .HasForeignKey(t => t.RoadmapId)
+                .IsRequired().OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Roadmap>()
                 .HasOne(t => t.Creator)

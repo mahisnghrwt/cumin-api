@@ -12,7 +12,7 @@ namespace cumin_api.Models {
         public string Title { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-        public int Row { get; set; }
+        public string Color { get; set; }
         public int ProjectId { get; set; }
 
         [JsonIgnore]
@@ -33,7 +33,6 @@ namespace cumin_api.Models {
             Title = epic.Title;
             StartDate = epic.StartDate;
             EndDate = epic.EndDate;
-            Row = epic.Row;
             ProjectId = epic.ProjectId;
         }
     }
