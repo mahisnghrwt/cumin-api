@@ -14,10 +14,7 @@ namespace cumin_api.Models {
         public string Password { get; set; }
         public int? ActiveProjectId { get; set; }
         public Project ActiveProject { get; set; }
-        
 
-        [JsonIgnore]
-        public Roadmap Roadmap { get; set; }
         [JsonIgnore]
         public ICollection<UserProject> UserProjects { get; set; }
         [JsonIgnore]
@@ -27,6 +24,6 @@ namespace cumin_api.Models {
         [JsonIgnore]
         public ICollection<Issue> IssueReporter { get; set; }
         [JsonIgnore]
-        public ICollection<Issue> IssueResolver { get; set; }
+        public ICollection<Issue> IssueAssigned { get; set; }
     }
 }

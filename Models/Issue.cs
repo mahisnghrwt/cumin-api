@@ -9,31 +9,35 @@ namespace cumin_api.Models {
     public class Issue {
         [Key]
         public int Id { get; set; }
-        public string Title { get; set; }
+        public string Title { get; set; } // required
         public string Description { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public string Type { get; set; }
-        public string Status { get; set; } = "Todo";
+        public string Type { get; set; } // required
+        public string Status { get; set; } = "Todo"; // required
+        //fk
         public int ProjectId { get; set; }
         [JsonIgnore]
         public Project Project { get; set; }
+        //fk
         public int ReporterId { get; set; }
         [JsonIgnore]
         public User Reporter { get; set; }
-        public int? ResolverId { get; set; }
+        //fk
+        public int? AssignedToId { get; set; }
         [JsonIgnore]
-        public User Resolver { get; set; }
+        public User AssignedTo { get; set; }
+        //fk
         public int? SprintId { get; set; }
-        public int? EpicId { get; set; }
-        
         [JsonIgnore]
         public Sprint Sprint { get; set; }
+        //fk
+        public int? EpicId { get; set; }
         [JsonIgnore]
         public Epic Epic { get; set; }
 
         public Issue() { }
         public Issue(int id, string title, string desc, DateTime createdAt, 
-            string type, string status, int projectId, int reporterId, int? resolverId, int? sprintId) {
+            string type, string status, int projectId, int reporterId, int? assignedToId, int? sprintId) {
             Id = id;
             Title = title;
             Description = desc;
@@ -42,12 +46,12 @@ namespace cumin_api.Models {
             Status = status;
             ProjectId = projectId;
             ReporterId = reporterId;
-            ResolverId = resolverId;
+            AssignedToId = assignedToId;
             SprintId = sprintId;
         }
 
         public Issue(Issue issue) : this(issue.Id, issue.Title, issue.Description, issue.CreatedAt,
-            issue.Type, issue.Status, issue.ProjectId, issue.ReporterId, issue.ResolverId, issue.SprintId) { }
+            issue.Type, issue.Status, issue.ProjectId, issue.ReporterId, issue.AssignedToId, issue.SprintId) { }
 
         public void CopyForUpdate(Issue target) {
             Title = target.Title;

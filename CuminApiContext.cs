@@ -11,186 +11,201 @@ namespace cumin_api {
         public DbSet<Project> Projects { get; set; }
         public DbSet<UserProject> UserProjects { get; set; }
         public DbSet<ProjectInvitation> ProjectInvitations { get; set; }
-        public DbSet<Issue> Issues { get; set; }
         public DbSet<Sprint> Sprints { get; set; }
-        public DbSet<Roadmap> Roadmaps { get; set; }
+        public DbSet<Issue> Issues { get; set; }
         public DbSet<Epic> Epics { get; set; }
-        public DbSet<RoadmapEpic> RoadmapEpics { get; set; }
         public DbSet<Path> Paths { get; set; }
-        public DbSet<RoadmapPath> RoadmapPaths { get; set; }
-
 
         public CuminApiContext(DbContextOptions<CuminApiContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
-        // why not just add a ? activeSprintId optinal field in the "Project" entity??
-        //  A project can have only one active sprint
-            //modelBuilder.Entity<ActiveSprintProject>().HasKey(x => new { x.ProjectId});
-            //modelBuilder.Entity<ActiveSprintProject>().HasAlternateKey(x => x.Id);
-            //modelBuilder.Entity<ActiveSprintProject>().Property(x => x.Id).ValueGeneratedOnAdd();
-            //modelBuilder.Entity<ActiveSprintProject>()
-            //    .HasOne(x => x.Project)
-            //    .WithOne(x => x.ActiveSprint)
-            //    .HasForeignKey<ActiveSprintProject>(x => x.ProjectId);
-            //modelBuilder.Entity<ActiveSprintProject>()
-            //    .HasOne(x => x.Sprint)
-            //    .WithOne(x => x.ActiveSprint)
-            //    .HasForeignKey<ActiveSprintProject>(x => x.SprintId);
-
-
-
-
-            modelBuilder.Entity<Sprint>().HasKey(x => x.Id);
-            modelBuilder.Entity<Sprint>().Property(x => x.Id).ValueGeneratedOnAdd();
-            modelBuilder.Entity<Sprint>()
-                .HasOne(x => x.Project)
-                .WithMany(x => x.Sprints)
-                .HasForeignKey(x => x.ProjectId)
-                .IsRequired(true);
-            
-
-            modelBuilder.Entity<Issue>().HasKey(x => x.Id);
-            modelBuilder.Entity<Issue>().Property(x => x.Id).ValueGeneratedOnAdd();
-            modelBuilder.Entity<Issue>()
-                .HasOne(x => x.Project)
-                .WithMany(x => x.Issues)
-                .HasForeignKey(x => x.ProjectId);
-
-            modelBuilder.Entity<Issue>()
-                .HasOne(x => x.Reporter)
-                .WithMany(x => x.IssueReporter)
-                .HasForeignKey(x => x.ReporterId);
-
-            modelBuilder.Entity<Issue>()
-                .HasOne(x => x.Resolver)
-                .WithMany(x => x.IssueResolver)
-                .HasForeignKey(x => x.ResolverId)
-                .IsRequired(false);
-
-            modelBuilder.Entity<Issue>()
-                .HasOne(x => x.Sprint)
-                .WithMany(x => x.Issues)
-                .HasForeignKey(x => x.SprintId)
-                .IsRequired(false);
-
-            modelBuilder.Entity<Issue>()
-            .HasOne(x => x.Epic)
-            .WithMany(x => x.Issues)
-            .HasForeignKey(x => x.EpicId)
-            .OnDelete(DeleteBehavior.SetNull)
-            .IsRequired(false);
-
-
-            modelBuilder.Entity<User>().HasAlternateKey(x => x.Username);
-
-            modelBuilder.Entity<UserProject>().HasKey(t => new { t.UserId, t.ProjectId });
-            modelBuilder.Entity<UserProject>().HasAlternateKey(x => x.Id);
+            //==============================================================================
+            // pk
+            modelBuilder.Entity<User>().HasKey(x => x.Id);
+            modelBuilder.Entity<User>().Property(x => x.Id).ValueGeneratedOnAdd();
+            // fks
+            modelBuilder.Entity<User>()
+               .HasOne(x => x.ActiveProject)
+               .WithMany(x => x.ActiveForUser)
+               .HasForeignKey(x => x.ActiveProjectId)
+               .IsRequired(false)
+               .OnDelete(DeleteBehavior.SetNull);
+            // constriants
+            modelBuilder.Entity<User>().HasIndex(u => u.Username).IsUnique();
+            //==============================================================================
+            // pk
+            modelBuilder.Entity<Project>().HasKey(x => x.Id);
+            modelBuilder.Entity<Project>().Property(x => x.Id).ValueGeneratedOnAdd();
+            // fk
+            modelBuilder.Entity<Project>()
+                .HasOne(x => x.ActiveSprint)
+                .WithOne(x => x.ActiveForProject)
+                .HasForeignKey<Project>(x => x.ActiveSprintId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+            //==============================================================================
+            // pk
+            modelBuilder.Entity<UserProject>().HasKey(x => x.Id);
             modelBuilder.Entity<UserProject>().Property(x => x.Id).ValueGeneratedOnAdd();
-            modelBuilder.Entity<UserProject>().Property(u => u.UserRole).IsRequired();
-
+            modelBuilder.Entity<UserProject>().HasIndex(t => new { t.UserId, t.ProjectId }).IsUnique();
+            // fks
             modelBuilder.Entity<UserProject>()
                 .HasOne(up => up.Project)
                 .WithMany(p => p.UserProjects)
-                .HasForeignKey(up => up.ProjectId);
-
+                .HasForeignKey(up => up.ProjectId)
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<UserProject>()
                 .HasOne(up => up.User)
                 .WithMany(u => u.UserProjects)
-                .HasForeignKey(up => up.UserId);
-
-            modelBuilder.Entity<ProjectInvitation>().HasKey(t => new { t.InviteeId, t.InviterId, t.ProjectId });
-            modelBuilder.Entity<ProjectInvitation>().HasAlternateKey(x => x.Id);
+                .HasForeignKey(up => up.UserId)
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.Cascade);
+            // fields
+            modelBuilder.Entity<UserProject>().Property(u => u.UserRole).IsRequired();
+            //==============================================================================
+            //pk
+            modelBuilder.Entity<ProjectInvitation>().HasKey(x => x.Id);
             modelBuilder.Entity<ProjectInvitation>().Property(t => t.Id).ValueGeneratedOnAdd();
-
+            // constraint
+            modelBuilder.Entity<ProjectInvitation>().HasIndex(t => new { t.InviteeId, t.InviterId, t.ProjectId }).IsUnique();
+            // fks
             modelBuilder.Entity<ProjectInvitation>()
                 .HasOne(pi => pi.Invitee)
                 .WithMany(iv => iv.ProjectInvitationSent)
                 .HasForeignKey(pi => pi.InviteeId)
-                .HasConstraintName("invitee-projectinvitation");
-
+                .HasConstraintName("invitee-projectinvitation")
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<ProjectInvitation>()
                 .HasOne(pi => pi.Inviter)
                 .WithMany(iv => iv.ProjectInvitedTo)
                 .HasForeignKey(pi => pi.InviterId)
-                .HasConstraintName("inviter-projectinvitation");
-
+                .HasConstraintName("inviter-projectinvitation")
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<ProjectInvitation>()
                 .HasOne(pi => pi.Project)
                 .WithMany(p => p.ProjectInvitations)
-                .HasForeignKey(pi => pi.ProjectId);
-
-             modelBuilder.Entity<Project>()
-                .HasOne(x => x.ActiveSprint)
-                .WithOne(x => x.ActiveForProject)
-                .HasForeignKey<Project>(x => x.ActiveSprintId)
+                .HasForeignKey(pi => pi.ProjectId)
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.Cascade);
+            //==============================================================================
+            // pk
+            modelBuilder.Entity<Sprint>().HasKey(x => x.Id);
+            modelBuilder.Entity<Sprint>().Property(x => x.Id).ValueGeneratedOnAdd();
+            //fks
+            modelBuilder.Entity<Sprint>()
+                .HasOne(x => x.Project)
+                .WithMany(x => x.Sprints)
+                .HasForeignKey(x => x.ProjectId)
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Sprint>()
+                .HasOne(x => x.ActiveForProject)
+                .WithOne(x => x.ActiveSprint)
+                .HasForeignKey<Sprint>(x => x.ActiveInProject)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+            // constraints
+            modelBuilder.Entity<Sprint>()
+                .Property(s => s.Title)
+                .IsRequired();
+            //==============================================================================
+            // pk
+            modelBuilder.Entity<Issue>().HasKey(x => x.Id);
+            modelBuilder.Entity<Issue>().Property(x => x.Id).ValueGeneratedOnAdd();
+            // fks
+            modelBuilder.Entity<Issue>()
+                .HasOne(x => x.Project)
+                .WithMany(x => x.Issues)
+                .HasForeignKey(x => x.ProjectId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Issue>()
+                .HasOne(x => x.Reporter)
+                .WithMany(x => x.IssueReporter)
+                .HasForeignKey(x => x.ReporterId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Issue>()
+                .HasOne(x => x.AssignedTo)
+                .WithMany(x => x.IssueAssigned)
+                .HasForeignKey(x => x.AssignedToId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<Issue>()
+                .HasOne(x => x.Sprint)
+                .WithMany(x => x.Issues)
+                .HasForeignKey(x => x.SprintId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<Issue>()
+                .HasOne(x => x.Epic)
+                .WithMany(x => x.Issues)
+                .HasForeignKey(x => x.EpicId)
+                .OnDelete(DeleteBehavior.SetNull)
                 .IsRequired(false);
-
-            modelBuilder.Entity<User>()
-                .HasOne(x => x.ActiveProject)
-                .WithMany(x => x.ActiveForUser)
-                .HasForeignKey(x => x.ActiveProjectId)
-                .IsRequired(false);
-
+            // constraints
+            modelBuilder.Entity<Issue>()
+                .Property(i => i.Title)
+                .IsRequired();
+            modelBuilder.Entity<Issue>()
+                .Property(i => i.Type)
+                .IsRequired();
+            modelBuilder.Entity<Issue>()
+                .Property(i => i.Status)
+                .IsRequired();
+            //==============================================================================
+            // pk
             modelBuilder.Entity<Epic>().HasKey(t => t.Id);
             modelBuilder.Entity<Epic>().Property(t => t.Id).ValueGeneratedOnAdd();
-
-            //modelBuilder.Entity<Epic>()
-            //    .HasOne(x => x.Project)
-            //    .WithMany(x => x.Epics)
-            //    .HasForeignKey(x => x.ProjectId)
-            //    .IsRequired(true);
-
+            // fks
             modelBuilder.Entity<Epic>()
-            .HasMany(x => x.Issues)
-            .WithOne(x => x.Epic);
-
+                .HasOne(x => x.Project)
+                .WithMany(x => x.Epics)
+                .HasForeignKey(x => x.ProjectId)
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.Cascade);
+            // constraints
+            modelBuilder.Entity<Epic>()
+                .Property(e => e.Title)
+                .IsRequired();
+            modelBuilder.Entity<Epic>()
+                .Property(e => e.StartDate)
+                .IsRequired();
+            modelBuilder.Entity<Epic>()
+                .Property(e => e.EndDate)
+                .IsRequired();
+            modelBuilder.Entity<Epic>()
+                .Property(e => e.Color)
+                .IsRequired();
+            modelBuilder.Entity<Epic>()
+                .Property(e => e.Row)
+                .IsRequired();
+            //==============================================================================
+            // pk
+            modelBuilder.Entity<Path>().HasKey(t => t.Id);
+            modelBuilder.Entity<Path>().Property(t => t.Id).ValueGeneratedOnAdd();
+            // fks
             modelBuilder.Entity<Path>()
-               .HasOne(x => x.FromEpic)
-               .WithMany(x => x.PathsFrom)
-               .HasForeignKey(x => x.FromEpicId)
-               .OnDelete(DeleteBehavior.Cascade)
-               .IsRequired(true);
-
+                   .HasOne(x => x.Project)
+                   .WithMany(x => x.Paths)
+                   .HasForeignKey(x => x.ProjectId)
+                   .IsRequired(true)
+                   .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Path>()
+                   .HasOne(x => x.FromEpic)
+                   .WithMany(x => x.PathsFrom)
+                   .HasForeignKey(x => x.FromEpicId)
+                   .IsRequired(true)
+                   .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<Path>()
                 .HasOne(x => x.ToEpic)
                 .WithMany(x => x.PathsTo)
                 .HasForeignKey(x => x.ToEpicId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .IsRequired(true);
-
-            modelBuilder.Entity<RoadmapEpic>().HasKey(t => t.Id);
-            modelBuilder.Entity<RoadmapEpic>().Property(t => t.Id).ValueGeneratedOnAdd();
-            modelBuilder.Entity<RoadmapEpic>()
-                .HasIndex(t => new { t.RoadmapId, t.EpicId, t.Row })
-                .IsUnique();
-            modelBuilder.Entity<RoadmapEpic>()
-                .HasOne(t => t.Epic)
-                .WithMany(t => t.RoadmapEpics)
-                .HasForeignKey(t => t.EpicId);
-
-            modelBuilder.Entity<RoadmapEpic>()
-                .HasOne(t => t.Roadmap)
-                .WithMany(t => t.RoadmapEpics)
-                .HasForeignKey(t => t.RoadmapId);
-
-            modelBuilder.Entity<RoadmapPath>()
-            .HasKey(t => new { t.PathId, t.RoadmapId });
-
-            modelBuilder.Entity<RoadmapPath>()
-                .HasOne(t => t.Path)
-                .WithMany(t => t.RoadmapPaths)
-                .HasForeignKey(t => t.PathId);
-
-            modelBuilder.Entity<RoadmapPath>()
-                .HasOne(t => t.Roadmap)
-                .WithMany(t => t.RoadmapPaths)
-                .HasForeignKey(t => t.RoadmapId)
-                .IsRequired().OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Roadmap>()
-                .HasOne(t => t.Creator)
-                .WithOne(t => t.Roadmap)
-                .HasForeignKey<Roadmap>(t => t.CreatorId);
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

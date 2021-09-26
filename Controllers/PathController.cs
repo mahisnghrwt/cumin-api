@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace cumin_api.Controllers {
 
     [ApiController]
-    [Route("api/v1/project/{projectId}/roadmap/{roadmapId}/[controller]")]
+    [Route("api/v1/project/{projectId}/[controller]")]
     [CustomAuthorization]
     public class PathController:ControllerBase {
         private readonly PathService pathService;
@@ -23,46 +23,45 @@ namespace cumin_api.Controllers {
         }
 
         // get all paths in project
-        [ServiceFilter(typeof(Filters.ProjectUrlBasedAuthorizationFilter))]
+        [ServiceFilter(typeof(ProjectUrlBasedAuthorizationFilter))]
         [HttpGet]
         public IActionResult GetAllPathsInProject(int projectId) {
             try {
-                var paths = pathService.GetAllPathsInProject(projectId).ToDictionary(x =>x.Id.ToString());
+                var paths = pathService.GetAllPathsInProject(projectId);
                 return Ok(paths);
-            } catch {
-                return Unauthorized();
-            }
-        }
-
-        [ServiceFilter(typeof(ProjectUrlBasedAuthorizationFilter))]
-        [ServiceFilter(typeof(RoleAuthorizationFilter))]
-        [ServiceFilter(typeof(RoadmapAuthorizationFilter))]
-        [HttpPost]
-        public async Task<IActionResult> CreatePath([FromBody] PathCreationDto dto, int roadmapId, int projectId) {
-            try {
-                int uid = Convert.ToInt32(HttpContext.Items["userId"]);
-                Models.Path path = new Models.Path { FromEpicId = dto.FromEpicId, ToEpicId = dto.ToEpicId, ProjectId = projectId };
-                var path_ = await pathService.AddToRoadmapAsync(path, roadmapId);
-
-                return Ok(path_);
             } catch (Exception e) {
                 throw e;
-                return Unauthorized();
             }
         }
 
         [ServiceFilter(typeof(ProjectUrlBasedAuthorizationFilter))]
         [ServiceFilter(typeof(RoleAuthorizationFilter))]
-        [ServiceFilter(typeof(RoadmapAuthorizationFilter))]
-        [HttpDelete("{pathId}")]
-        public async Task<IActionResult> DeletePathById(int pathId, int roadmapId) {
+        [HttpPost]
+        public async Task<IActionResult> CreatePath([FromBody] PathCreationDto dto, int projectId) {
             try {
-                await pathService.DeleteFromRoadmapAsync(pathId, roadmapId);
-
-            } catch {
-                return Unauthorized();
+                Models.Path path = new Models.Path { FromEpicId = dto.FromEpicId, ToEpicId = dto.ToEpicId, ProjectId = projectId };
+                var path_ = await pathService.AddToProjectAsync(path, projectId);
+                return Ok(path_);
+            } catch (Exception e) {
+                if (e is SimpleException) {
+                    return NotFound(e.Message);
+                }
+                throw e;
             }
+        }
 
+        [ServiceFilter(typeof(ProjectUrlBasedAuthorizationFilter))]
+        [ServiceFilter(typeof(RoleAuthorizationFilter))]
+        [HttpDelete("{pathId}")]
+        public async Task<IActionResult> DeletePathById(int pathId, int projectId) {
+            try {
+                await pathService.DeleteFromProjectAsync(pathId, projectId);
+            } catch (Exception e) {
+                if (e is SimpleException) {
+                    return NotFound(e.Message);
+                }
+                throw e;
+            }
             return Ok();
         }
     }

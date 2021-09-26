@@ -61,7 +61,7 @@ namespace cumin_api.Services {
             var issue = dbContext.Issues
                 .Include(x => x.Project)
                 .Include(x => x.Reporter)
-                .Include(x => x.Resolver)
+                .Include(x => x.AssignedTo)
                 .FirstOrDefault(x => x.Id == id);
 
             if (!CanAccessProject(issue.ProjectId, uid))
@@ -74,7 +74,7 @@ namespace cumin_api.Services {
             return dbContext.Issues
                 .Include(x => x.Project)
                 .Include(x => x.Reporter)
-                .Include(x => x.Resolver)
+                .Include(x => x.AssignedTo)
                 .ToList();
         }
 
@@ -85,7 +85,7 @@ namespace cumin_api.Services {
             return dbContext.Issues
                 .Include(x => x.Project)
                 .Include(x => x.Reporter)
-                .Include(x => x.Resolver)
+                .Include(x => x.AssignedTo)
                 .Where(x => x.ProjectId == pid)
                 .ToList();
         }
@@ -98,7 +98,7 @@ namespace cumin_api.Services {
             return dbContext.Issues
                 .Include(x => x.Project)
                 .Include(x => x.Reporter)
-                .Include(x => x.Resolver)
+                .Include(x => x.AssignedTo)
                 .Where(x => x.SprintId == sid && x.ProjectId == pid)
                 .ToList();
         }

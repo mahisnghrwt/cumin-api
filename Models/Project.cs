@@ -9,11 +9,13 @@ namespace cumin_api.Models {
     public class Project {
         [Key]
         public int Id { get; set; }
-        public string Name { get; set; }
+        public string Name { get; set; } // required
         public DateTime StartDate { get; set; } = DateTime.UtcNow;
+        // fk, optional
         public int? ActiveSprintId { get; set; }
-
-
+        [JsonIgnore]
+        public Sprint ActiveSprint { get; set; }
+        // navigation properties
         [JsonIgnore]
         public ICollection<UserProject> UserProjects { get; set; }
         [JsonIgnore]
@@ -23,11 +25,11 @@ namespace cumin_api.Models {
         [JsonIgnore]
         public ICollection<Sprint> Sprints { get; set; }
         [JsonIgnore]
-        public Sprint ActiveSprint { get; set; }
-        [JsonIgnore]
         public ICollection<User> ActiveForUser { get; set; }
         [JsonIgnore]
         public ICollection<Epic> Epics { get; set; }
+        [JsonIgnore]
+        public ICollection<Path> Paths { get; set; }
 
 
         public Project DeepCopy() {

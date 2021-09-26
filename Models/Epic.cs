@@ -9,22 +9,22 @@ namespace cumin_api.Models {
     public class Epic {
         [Key]
         public int Id { get; set; }
-        public string Title { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
-        public string Color { get; set; }
+        public string Title { get; set; } // required
+        public DateTime StartDate { get; set; } // required
+        public DateTime EndDate { get; set; } // required
+        public string Color { get; set; } // required
+        public int Row { get; set; } // required
+        // fk
         public int ProjectId { get; set; }
-
         [JsonIgnore]
         public Project Project { get; set; }
+        // navigation properties
         [JsonIgnore]
         public ICollection<Path> PathsFrom { get; set; }
         [JsonIgnore]
         public ICollection<Path> PathsTo { get; set; }
         [JsonIgnore]
         public ICollection<Issue> Issues { get; set; }
-        [JsonIgnore]
-        public ICollection<RoadmapEpic> RoadmapEpics { get; set; }
 
 
         public Epic() { }
@@ -34,6 +34,7 @@ namespace cumin_api.Models {
             StartDate = epic.StartDate;
             EndDate = epic.EndDate;
             ProjectId = epic.ProjectId;
+            Color = epic.Color;
         }
     }
 }

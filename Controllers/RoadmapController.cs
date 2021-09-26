@@ -15,63 +15,25 @@ namespace cumin_api.Controllers {
     [Route("api/v1/project/{projectId}/[controller]")]
     [CustomAuthorization]
     public class RoadmapController: ControllerBase {
-        private RoadmapService roadmapService;
-        private IMapper mapper;
+        private PathService pathService;
+        private EpicService epicService;
 
-        public RoadmapController(RoadmapService roadmapService, IMapper mapper) {
-            this.roadmapService = roadmapService;
-            this.mapper = mapper;
+        public RoadmapController(PathService pathService, EpicService epicService) {
+            this.pathService = pathService;
+            this.epicService = epicService;
         }
 
         [ServiceFilter(typeof(ProjectUrlBasedAuthorizationFilter))]
-        [ServiceFilter(typeof(RoleAuthorizationFilter))]
-        [HttpPost]
-        public async Task<IActionResult> CreateRoadmap(int projectId, [FromBody] RoadmapCreationDto dto) {
-            int userId = Convert.ToInt32(HttpContext.Items["userId"]);
-            var roadmap = await roadmapService.Add(new Roadmap { ProjectId = projectId, Title = dto.Title, CreatorId = userId });
-            return Ok(roadmap);
-        }
-
-        [ServiceFilter(typeof(ProjectUrlBasedAuthorizationFilter))]
-        [ServiceFilter(typeof(RoleAuthorizationFilter))]
         [HttpGet]
-        public IActionResult GetAllRoadmapInProject(int projectId) {
-            IEnumerable <Roadmap> roadmaps;
-            if (HttpContext.Request.Query.ContainsKey("detailed") && HttpContext.Request.Query["detailed"] == "true") {
-                roadmaps = roadmapService.GetAllInDetailFromProject(projectId);
-                var roadmaps_ = roadmaps.Select(r => {
-                    return new {
-                        id = r.Id,
-                        projectId = r.ProjectId,
-                        epics = r.RoadmapEpics.Select(re => {
-                            return mapper.Map<EpicDto>(re);
-                        }),
-                        paths = r.RoadmapPaths.Select(rp => {
-                            return new {
-                                projectId = rp.Path.ProjectId,
-                                roadmapId = rp.RoadmapId,
-                                id = rp.PathId,
-                                fromEpicId = rp.Path.FromEpicId,
-                                toEpicId = rp.Path.ToEpicId,
-                            };
-                        })
-                    };
-                });
-                return Ok(roadmaps_);
+        public IActionResult GetRoadmap(int projectId) {
+            RoadmapDto roadmapDto = new RoadmapDto { ProjectId = projectId };
+            try {
+                roadmapDto.Paths = pathService.GetAllPathsInProject(projectId);
+                roadmapDto.Epics = epicService.GetAllInProject(projectId);
+            } catch (Exception e) {
+                throw e;
             }
-            else {
-                roadmaps = roadmapService.GetAllFromProject(projectId);
-            }
-            return Ok(roadmaps);
-        }
-
-        [ServiceFilter(typeof(ProjectUrlBasedAuthorizationFilter))]
-        [ServiceFilter(typeof(RoleAuthorizationFilter))]
-        [ServiceFilter(typeof(RoadmapAuthorizationFilter))]
-        [HttpGet("{roadmapId}")]
-        public IActionResult GetRoadmap(int roadmapId) {
-            var roadmap = roadmapService.GetFull(roadmapId);
-            return Ok(roadmap);
+            return Ok(roadmapDto);
         }
     }
 }

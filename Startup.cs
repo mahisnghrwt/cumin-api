@@ -68,13 +68,11 @@ namespace cumin_api {
             services.AddScoped<Services.v2.ProjectService, Services.v2.ProjectService>();
             services.AddScoped<Services.v2.EpicService, Services.v2.EpicService>();
             services.AddScoped<Services.v2.PathService, Services.v2.PathService>();
-            services.AddScoped<Services.v2.RoadmapService, Services.v2.RoadmapService>();
 
 
             // filters
             services.AddScoped<ProjectUrlBasedAuthorizationFilter>();
             services.AddScoped<RoleAuthorizationFilter>();
-            services.AddScoped<RoadmapAuthorizationFilter>();
 
             // web socket related
             services.AddScoped<RealtimeRequestFilter, RealtimeRequestFilter>();

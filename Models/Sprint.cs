@@ -8,16 +8,17 @@ namespace cumin_api.Models {
         [Key]
         public int Id { get; set; }
         public string Title { get; set; }
-        public int ProjectId { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-        public ICollection<Issue> Issues { get; set; }
-
-
+        // fk
+        public int ProjectId { get; set; }
         [JsonIgnore]
         public Project Project { get; set; }
+        // fk
+        public int? ActiveInProject { get; set; }
         [JsonIgnore]
         public Project ActiveForProject { get; set; }
-        //[JsonIgnore]
+        // navigation properties
+        public ICollection<Issue> Issues { get; set; }
+        
     }
 }

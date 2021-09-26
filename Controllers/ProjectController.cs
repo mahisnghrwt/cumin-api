@@ -3,7 +3,9 @@ using cumin_api.Enums;
 using cumin_api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace cumin_api.Controllers {
     [Route("api/v1/[controller]")]
@@ -16,17 +18,15 @@ namespace cumin_api.Controllers {
         }
 
         [HttpPost]
-        public IActionResult CreateProject([FromBody] ProjectCreationDto projectRequest) {
-            var uid = Helper.GetUid(HttpContext);
-            if (uid == -1)
-                return BadRequest(new { message = Helper.NO_UID_ERROR_MSG });
-
+        public async Task<IActionResult> CreateProject([FromBody] ProjectCreationDto projectRequest) {
+            int userId = Convert.ToInt32(HttpContext.Items["userId"]);
             var project = new Project { Name = projectRequest.Name };
 
             try {
-                return Ok(projectService.AddProjectAndLinkCreator(project, uid));
-            } catch {
-                return NotFound();
+                var project_ = await projectService.AddProjectAndLinkCreator(project, userId);
+                return Ok(project_);
+            } catch (Exception e) {
+                throw e;
             }
         }
 
@@ -69,41 +69,20 @@ namespace cumin_api.Controllers {
 
         [HttpPut("{projectId}/active-sprint")]
         [ServiceFilter(typeof(Filters.ProjectUrlBasedAuthorizationFilter))]
-        [ServiceFilter(typeof(RealtimeRequestFilter))]
-        public IActionResult ChangeActiveSprint(int pid, [FromBody] Models.DTOs.ActiveSprintChangeDto activeSprintChangeDto) {
-            const string prev = "prev";
-            const string current = "current";
+        public async Task<IActionResult> ChangeActiveSprint(int pid, [FromBody] Models.DTOs.ActiveSprintChangeDto activeSprintChangeDto) {
 
-            var userId = Helper.GetUid(HttpContext);
-            if (userId == -1)
-                return BadRequest(new { message = Helper.NO_UID_ERROR_MSG });
-
-            Dictionary<string, Project> projectStates = new Dictionary<string, Project>();
-            Project projectPatched;
+            int userId = Convert.ToInt32(HttpContext.Items["userId"]);
 
             try {
                 // get the project object
                 var project = projectService.FindById(pid);
-                // store the current state as "prev"
-                projectStates.Add(prev, project.DeepCopy());
-                // change activeSprintId property
                 project.ActiveSprintId = activeSprintChangeDto.ActiveSprintId;
                 // Update it
-                projectPatched = projectService.Update(project);
-                // store the patched state as "current" in dict
-                projectStates.Add(current, projectPatched);
+                 await projectService.UpdateAsync(project);
+                return Ok(project);
             } catch (DbUpdateException e) {
                 return Unauthorized(new { message = e.Message });
             }
-
-            // create socket message header and message, then attach it to the request context, so it will be accessible by filter responsible for forwarding the messages to websocket.
-            Models.Socket.SocketMessageHeader sockHeader = new Models.Socket.SocketMessageHeader { broadcastType = (int)SOCKET_MESSAGE_TYPE.BROADCAST, targetId = pid };
-            Models.Socket.SocketMessage sockMessage = new Models.Socket.SocketMessage { eventName = (int)Enums.SOCKET_EVENT.ACTIVE_SPRINT_UPDATED, payload = projectStates };
-
-            HttpContext.Items["SocketMessageHeader"] = sockHeader;
-            HttpContext.Items["SocketMessage"] = sockMessage;
-
-            return Ok(projectPatched);
         }
     }
 }

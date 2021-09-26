@@ -13,40 +13,26 @@ namespace cumin_api.Services.v2 {
             return dbSet.Where(x => x.ProjectId == projectId);
         }
 
-        public async Task<Path> AddToRoadmapAsync(Path path, int roadmapId) {
-            // check if the epic exists in the roadmap
-            var pathSaved = await dbSet.AddAsync(path);
-            await pathSaved.Reference(p => p.FromEpic).LoadAsync();
-            await pathSaved.Reference(p => p.ToEpic).LoadAsync();
-            await context.Entry(pathSaved.Entity.FromEpic).Collection(e => e.RoadmapEpics).LoadAsync();
-            await context.Entry(pathSaved.Entity.ToEpic).Collection(e => e.RoadmapEpics).LoadAsync();
+        public async Task<Path> AddToProjectAsync(Path path, int projectId) {
+            var hasHeadEpic = await context.Epics.AnyAsync(e => e.Id == path.FromEpicId && e.ProjectId == projectId);
+            var hasTailEpic = await context.Epics.AnyAsync(e => e.Id == path.ToEpicId && e.ProjectId == projectId);
 
-            var valid = true;
-            valid = valid && pathSaved.Entity.ToEpic.RoadmapEpics.Any(re => re.RoadmapId == roadmapId);
-            valid = valid && pathSaved.Entity.FromEpic.RoadmapEpics.Any(re => re.RoadmapId == roadmapId);
-
-            var roadmapPath = await context.RoadmapPaths.AddAsync(new RoadmapPath { Path = pathSaved.Entity, RoadmapId = roadmapId });
-
-            await context.SaveChangesAsync();
-
-            return pathSaved.Entity;
-        }
-
-        public async Task<bool> DeleteFromRoadmapAsync(int pathId, int roadmapId) {
-            var roadmapPath = context.RoadmapPaths.FirstOrDefault(p => p.PathId == pathId && p.RoadmapId == roadmapId);
-            if (roadmapPath == null) return false;
-
-            context.RoadmapPaths.Remove(roadmapPath);
-
-            var pathUsed = context.RoadmapPaths.Count(rp => rp.PathId == pathId);
-            // if the path is only used in our roadmap
-            if (pathUsed == 1) {
-                await context.Entry(roadmapPath).Reference(rp => rp.Path).LoadAsync();
-                dbSet.Remove(roadmapPath.Path);
+            if (!hasHeadEpic || !hasTailEpic) {
+                throw new SimpleException($"Endpoint epics do not exist.");
             }
 
+            var path_ = await dbSet.AddAsync(path);
+            return path_.Entity;
+        }
+
+        public async Task DeleteFromProjectAsync(int pathId, int projectId) {
+            var path = await dbSet.FirstOrDefaultAsync(p => p.Id == pathId && p.ProjectId == projectId);
+            if (path == null) {
+                throw new SimpleException($"Path not found. Id - {pathId}, ProjectId - {projectId}");
+            }
+
+            dbSet.Remove(path);
             await context.SaveChangesAsync();
-            return true;
         }
     }
 }

@@ -41,7 +41,7 @@ namespace cumin_api.Services.v2 {
             }
         }
 
-        public async void UpdateAsync(T updatedEntity) {
+        public async Task UpdateAsync(T updatedEntity) {
             context.Update(updatedEntity);
             await context.SaveChangesAsync();
         }
