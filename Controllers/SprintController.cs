@@ -1,10 +1,15 @@
-﻿using cumin_api.Attributes;
+﻿using AutoMapper;
+using cumin_api.Attributes;
 using cumin_api.Enums;
+using cumin_api.Filters;
 using cumin_api.Models;
 using cumin_api.Models.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace cumin_api.Controllers {
     
@@ -13,81 +18,75 @@ namespace cumin_api.Controllers {
     [CustomAuthorization]
     public class SprintController: ControllerBase {
         private readonly Services.v2.SprintService sprintService;
-        public SprintController(Services.v2.SprintService sprintService) {
+        private IMapper mapper;
+        public SprintController(Services.v2.SprintService sprintService, IMapper mapper) {
             this.sprintService = sprintService;
+            this.mapper = mapper;
         }
 
-        [ServiceFilter(typeof(Filters.ProjectUrlBasedAuthorizationFilter))]
+        [ServiceFilter(typeof(ProjectUrlBasedAuthorizationFilter))]
+        [ServiceFilter(typeof(RoleAuthorizationFilter))]
+        [HttpGet("{sprintId}")]
+        public async Task<IActionResult> GetById(int sprintId, int projectId) {
+            try {
+                var sprint = await sprintService.GetWithIssues(sprintId, projectId);
+                if (sprint == null) {
+                    return new UnauthorizedObjectResult(new { message = $"Sprint not found in project. SprintId - {sprintId} and ProjectId - {projectId}" });
+                }
+                return Ok(sprint);
+            } catch (Exception e) {
+                throw e;
+            }
+        }
+
+        [ServiceFilter(typeof(ProjectUrlBasedAuthorizationFilter))]
         [HttpGet]
-        public IActionResult GetAllByProjectAsDict(int projectId) {
-            var uid = Helper.GetUid(HttpContext);
-            if (uid == -1)
-                return Unauthorized(new { message = Helper.NO_UID_ERROR_MSG });
-
+        public IActionResult GetAll(int projectId) {
             try {
-                return Ok(sprintService.GetAllSprintsWithIssuesByProject(projectId).ToDictionary(x => x.Id.ToString()));
-            } catch (SimpleException e) {
-                return Unauthorized(new { message = e.Message });
-            } catch (DbUpdateException e) {
-                return Unauthorized(new { message = e.Message });
+                var sprints = sprintService.GetAll(projectId).ToList();
+                return Ok(sprints);
+            } catch (Exception e) {
+                throw e;
             }
         }
 
-
-        [ServiceFilter(typeof(RealtimeRequestFilter))]
-        [ServiceFilter(typeof(Filters.ProjectUrlBasedAuthorizationFilter))]
-        [HttpPost]
-        public IActionResult CreateSprint([FromBody] SprintCreationDto dto, int projectId) {
-            var uid = Helper.GetUid(HttpContext);
-            if (uid == -1)
-                return Unauthorized(new { message = Helper.NO_UID_ERROR_MSG });
-
-            if (projectId != dto.ProjectId) {
-                return BadRequest();
-            }
-
-            Sprint sprint = new Sprint { Title = dto.Title, ProjectId = dto.ProjectId};
-            Sprint sprintCreated;
-
-            try {
-                sprintCreated = sprintService.Add(sprint);
-            } catch (SimpleException e) {
-                return Unauthorized(new { message = e.Message });
-            } catch (DbUpdateException e) {
-                return Unauthorized(new { message = e.Message });
-            }
-
-            Models.Socket.SocketMessageHeader sockHeader = new Models.Socket.SocketMessageHeader { broadcastType = (int)SOCKET_MESSAGE_TYPE.BROADCAST, targetId = dto.ProjectId };
-            Models.Socket.SocketMessage sockMessage = new Models.Socket.SocketMessage { eventName = (int)Enums.SOCKET_EVENT.SPRINT_CREATED, payload = sprintCreated };
-
-            HttpContext.Items["SocketMessageHeader"] = sockHeader;
-            HttpContext.Items["SocketMessage"] = sockMessage;
-
-            return Ok(sprintCreated);
-        }
-
+        [ServiceFilter(typeof(ProjectUrlBasedAuthorizationFilter))]
         [HttpDelete("{sprintId}")]
-        [ServiceFilter(typeof(Filters.ProjectUrlBasedAuthorizationFilter))]
-        [ServiceFilter(typeof(RealtimeRequestFilter))]
-        public IActionResult DeleteSprintById(int projectId, int sprintId) {
-            var uid = Helper.GetUid(HttpContext);
-            if (uid == -1)
-                return Unauthorized(new { message = Helper.NO_UID_ERROR_MSG });
+        public async Task<IActionResult> DeleteSprint(int projectId, int sprintId) {
             try {
-                sprintService.DeleteInProject(sprintId, projectId);
-            } catch (SimpleException e) {
-                return Unauthorized(new { message = e.Message });
-            } catch (DbUpdateException e) {
-                return Unauthorized(new { message = e.Message });
+                var sprint = sprintService.Find(s => s.Id == sprintId && s.ProjectId == projectId);
+                await sprintService.Delete(sprint);
+                return Ok();
+            } catch (Exception e) {
+                throw e;
             }
+        }
 
-            Models.Socket.SocketMessageHeader sockHeader = new Models.Socket.SocketMessageHeader { broadcastType = (int)SOCKET_MESSAGE_TYPE.BROADCAST, targetId = projectId };
-            Models.Socket.SocketMessage sockMessage = new Models.Socket.SocketMessage { eventName = (int)Enums.SOCKET_EVENT.SPRINT_DELETED, payload = sprintId };
+        [ServiceFilter(typeof(ProjectUrlBasedAuthorizationFilter))]
+        [HttpPost]
+        public async Task<IActionResult> CreateSprint([FromBody]SprintCreationDto dto, int projectId) {
+            try {
+                Sprint sprint = mapper.Map<Sprint>(dto);
+                sprint.ProjectId = projectId;
 
-            HttpContext.Items["SocketMessageHeader"] = sockHeader;
-            HttpContext.Items["SocketMessage"] = sockMessage;
+                var sprint_ = await sprintService.AddAsync(sprint);
+                return Ok(sprint_);
+            } catch (Exception e) {
+                throw e;
+            }
+        }
 
-            return Ok();
+        [ServiceFilter(typeof(ProjectUrlBasedAuthorizationFilter))]
+        [HttpPatch("{sprintId}")]
+        public async Task<IActionResult> PatchSprint([FromBody] JsonElement dto, int projectId, int sprintId) {
+            try {
+                var sprint = await sprintService.FindAsync(s => s.Id == sprintId && s.ProjectId == projectId);
+                Helper.Mapper(dto, ref sprint);
+                await sprintService.UpdateAsync(sprint);
+                return Ok(sprint);
+            } catch (Exception e) {
+                throw e;
+            }
         }
     }
 }

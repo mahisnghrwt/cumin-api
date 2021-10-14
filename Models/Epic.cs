@@ -23,7 +23,6 @@ namespace cumin_api.Models {
         public ICollection<Path> PathsFrom { get; set; }
         [JsonIgnore]
         public ICollection<Path> PathsTo { get; set; }
-        [JsonIgnore]
         public ICollection<Issue> Issues { get; set; }
 
 

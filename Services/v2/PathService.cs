@@ -10,7 +10,7 @@ namespace cumin_api.Services.v2 {
         public PathService(CuminApiContext context) : base(context) { }
 
         public IEnumerable<Path> GetAllPathsInProject(int projectId) {
-            return dbSet.Where(x => x.ProjectId == projectId);
+            return dbSet.Where(x => x.ProjectId == projectId).ToList();
         }
 
         public async Task<Path> AddToProjectAsync(Path path, int projectId) {
@@ -22,6 +22,7 @@ namespace cumin_api.Services.v2 {
             }
 
             var path_ = await dbSet.AddAsync(path);
+            await context.SaveChangesAsync();
             return path_.Entity;
         }
 

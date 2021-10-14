@@ -147,6 +147,9 @@ namespace cumin_api.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ActiveSprintId")
+                        .IsUnique();
+
                     b.ToTable("Projects");
                 });
 
@@ -186,23 +189,26 @@ namespace cumin_api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int?>("ActiveInProject")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime(6)");
 
                     b.Property<int>("ProjectId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ActiveInProject")
-                        .IsUnique();
 
                     b.HasIndex("ProjectId");
 
@@ -338,6 +344,16 @@ namespace cumin_api.Migrations
                     b.Navigation("ToEpic");
                 });
 
+            modelBuilder.Entity("cumin_api.Models.Project", b =>
+                {
+                    b.HasOne("cumin_api.Models.Sprint", "ActiveSprint")
+                        .WithOne("ActiveForProject")
+                        .HasForeignKey("cumin_api.Models.Project", "ActiveSprintId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("ActiveSprint");
+                });
+
             modelBuilder.Entity("cumin_api.Models.ProjectInvitation", b =>
                 {
                     b.HasOne("cumin_api.Models.User", "Invitee")
@@ -369,18 +385,11 @@ namespace cumin_api.Migrations
 
             modelBuilder.Entity("cumin_api.Models.Sprint", b =>
                 {
-                    b.HasOne("cumin_api.Models.Project", "ActiveForProject")
-                        .WithOne("ActiveSprint")
-                        .HasForeignKey("cumin_api.Models.Sprint", "ActiveInProject")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("cumin_api.Models.Project", "Project")
                         .WithMany("Sprints")
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("ActiveForProject");
 
                     b.Navigation("Project");
                 });
@@ -427,8 +436,6 @@ namespace cumin_api.Migrations
                 {
                     b.Navigation("ActiveForUser");
 
-                    b.Navigation("ActiveSprint");
-
                     b.Navigation("Epics");
 
                     b.Navigation("Issues");
@@ -444,6 +451,8 @@ namespace cumin_api.Migrations
 
             modelBuilder.Entity("cumin_api.Models.Sprint", b =>
                 {
+                    b.Navigation("ActiveForProject");
+
                     b.Navigation("Issues");
                 });
 

@@ -19,6 +19,11 @@ namespace cumin_api.Services.v2 {
             if (epic == null) {
                 throw new SimpleException($"Epic not found in the project. EpicId = {epicId}, ProjectId = {projectId}");
             }
+            // pull epics below this row up by 1 row
+            // So we do not have any empty rows in between in canvas
+            int thresholdRow = epic.Row;
+            var epics = dbSet.Where(e => e.Row > thresholdRow);
+            await epics.ForEachAsync(e => e.Row--);
 
             dbSet.Remove(epic);
             await context.SaveChangesAsync();
@@ -39,7 +44,7 @@ namespace cumin_api.Services.v2 {
         }
 
         public IEnumerable<Epic> GetAllInProject(int pid) {
-            return dbSet.Where(x => x.ProjectId == pid);
+            return dbSet.Include(e => e.Issues).Where(x => x.ProjectId == pid).ToList();
         }
     }
 }

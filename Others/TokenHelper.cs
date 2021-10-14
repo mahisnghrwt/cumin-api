@@ -32,19 +32,17 @@ namespace cumin_api.Others {
                 return jwtToken.Claims;
             } 
             catch (Exception e){
-                
+                throw e;
             }
 
             return null;
         }
 
-        public string GenerateToken(int userId, string remoteIp) {
+        public string GenerateToken(int userId) {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(securityConfig.Secret);
-            //var createdOn = DateTime.Now;
-            //var expiryOn = createdOn.AddDays(7);
             var tokenDescriptor = new SecurityTokenDescriptor {
-                Subject = new ClaimsIdentity(new Claim[] { new Claim("userId", userId.ToString()), new Claim("remoteIp", remoteIp) }),
+                Subject = new ClaimsIdentity(new Claim[] { new Claim("userId", userId.ToString())}),
                 Expires = DateTime.Now.AddDays(7),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };

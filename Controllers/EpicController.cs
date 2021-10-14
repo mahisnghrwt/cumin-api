@@ -4,7 +4,6 @@ using cumin_api.Enums;
 using cumin_api.Filters;
 using cumin_api.Models;
 using cumin_api.Models.DTOs;
-using cumin_api.Models.Socket;
 using cumin_api.Services.v2;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -22,6 +21,12 @@ namespace cumin_api.Controllers {
         public EpicController(EpicService epicService, IMapper mapper) {
             this.epicService = epicService;
             this.mapper = mapper;
+        }
+
+        [ServiceFilter(typeof(ProjectUrlBasedAuthorizationFilter))]
+        [HttpGet]
+        public IActionResult GetEpics(int projectId) {
+            return Ok(epicService.GetAllInProject(projectId));
         }
 
         [ServiceFilter(typeof(ProjectUrlBasedAuthorizationFilter))]

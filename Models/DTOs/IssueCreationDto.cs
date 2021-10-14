@@ -8,9 +8,9 @@ namespace cumin_api.Models.DTOs {
         [Required]
         public string Type { get; set; }
         [Required]
-        public int ProjectId { get; set; }
-        [Required]
-        public int ReporterId { get; set; }
+        public string Status { get; set; }
+        public int? AssignedToId { get; set; }
         public int? SprintId { get; set; }
+        public int? EpicId { get; set; }
     }
 }

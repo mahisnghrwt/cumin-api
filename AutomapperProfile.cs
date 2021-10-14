@@ -12,6 +12,13 @@ namespace cumin_api {
         public AutomapperProfile() {
             AddMemberConfiguration().AddMember<NameSplitMember>();
             CreateMap<Epic, EpicDto>();
+            CreateMap<IssueCreationDto, Issue>();
+            CreateMap<SprintCreationDto, Sprint>();
+            CreateMap<Project, ProjectBriefDto>();
+            CreateMap<User, UserBriefDto>();
+            CreateMap<Sprint, SprintBriefDto>();
+            CreateMap<Epic, EpicBriefDto>();
+            CreateMap<Issue, IssueDetailedDto>();
         }
     }
 }

@@ -101,12 +101,6 @@ namespace cumin_api {
                 .HasForeignKey(x => x.ProjectId)
                 .IsRequired(true)
                 .OnDelete(DeleteBehavior.Cascade);
-            modelBuilder.Entity<Sprint>()
-                .HasOne(x => x.ActiveForProject)
-                .WithOne(x => x.ActiveSprint)
-                .HasForeignKey<Sprint>(x => x.ActiveInProject)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.SetNull);
             // constraints
             modelBuilder.Entity<Sprint>()
                 .Property(s => s.Title)

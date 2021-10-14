@@ -3,6 +3,7 @@ using System;
 using cumin_api.Models;
 using cumin_api.Attributes;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace cumin_api.Controllers {
     [Route("api/v1/[controller]")]
@@ -17,27 +18,25 @@ namespace cumin_api.Controllers {
         }
 
         [HttpPost("register")]
-        public IActionResult RegisterUser([FromBody] UserAuthenticationDto userAuthDto) {
+        public async Task<IActionResult> RegisterUser([FromBody] UserAuthenticationDto userAuthDto) {
             User user = new User { Username = userAuthDto.Username, Password = userAuthDto.Password };
-            User user_;
             try {
-                user_ = userService.Add(user);
+                User user_ = await userService.AddAsync(user);
+                return Ok(user_);
             } catch (Exception e) {
-                throw e;
+                Console.Error.WriteLine(e.Message);
+                return new StatusCodeResult(500);
             }
-
-            return Ok(user_);
         }
 
         [HttpPost("login")]
         public IActionResult LoginUser([FromBody] UserAuthenticationDto authReq) {
             var user = userService.Find(x => x.Username == authReq.Username && x.Password == authReq.Password);
             if (user == null)
-                return new UnauthorizedResult();
+                return new UnauthorizedObjectResult(new { message = "User not found or incorrect password."});
 
-            string token = tokenHelper.GenerateToken(user.Id, HttpContext.Connection.RemoteIpAddress.ToString());
+            string token = tokenHelper.GenerateToken(user.Id);
             var user_ = userService.GetWithActiveProject(user.Id);
-            // get the user details
 
             return Ok( new { user = user_, token = token } );
         }
@@ -53,11 +52,6 @@ namespace cumin_api.Controllers {
             } catch (DbUpdateException e) {
                 return Unauthorized(new { message = e.Message });
             }
-        }
-
-        [HttpGet("hello")]
-        public IActionResult Hello() {
-            return Ok(new { message = "Hello"});
         }
     }
 }

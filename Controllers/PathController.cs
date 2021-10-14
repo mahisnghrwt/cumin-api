@@ -2,7 +2,6 @@
 using cumin_api.Enums;
 using cumin_api.Filters;
 using cumin_api.Models.DTOs;
-using cumin_api.Models.Socket;
 using cumin_api.Services.v2;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -11,7 +10,6 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace cumin_api.Controllers {
-
     [ApiController]
     [Route("api/v1/project/{projectId}/[controller]")]
     [CustomAuthorization]

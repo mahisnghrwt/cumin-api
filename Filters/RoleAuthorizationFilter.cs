@@ -3,9 +3,6 @@ using cumin_api.Services.v2;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace cumin_api.Filters {
     public class RoleAuthorizationFilter : IAuthorizationFilter {
@@ -18,7 +15,7 @@ namespace cumin_api.Filters {
             int uid = Convert.ToInt32(context.HttpContext.Items["userId"]);
             int pid = Convert.ToInt32(context.HttpContext.Request.RouteValues["projectId"]);
             if (userService.GetRoleInProject(uid, pid) != UserRole.ProjectManager) {
-                context.Result = new UnauthorizedResult();
+                context.Result = new ForbidResult();
             }
         }
     }

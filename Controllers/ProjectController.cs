@@ -1,6 +1,8 @@
 ﻿using cumin_api.Attributes;
 using cumin_api.Enums;
+using cumin_api.Filters;
 using cumin_api.Models;
+using cumin_api.Models.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -54,35 +56,32 @@ namespace cumin_api.Controllers {
             }
         }
 
-        [HttpGet("{projectId}/members")]
+        [ServiceFilter(typeof(ProjectUrlBasedAuthorizationFilter))]
+        [HttpGet("{projectId}/member")]
         public IActionResult GetMembers(int projectId) {
-            var userId = Helper.GetUid(HttpContext);
-            if (userId == -1)
-                return BadRequest(new { message = Helper.NO_UID_ERROR_MSG });
-
-            try {
-                return Ok(projectService.GetAllUsersInProject(projectId));
-            } catch {
-                return NotFound();
-            }
+            return Ok(projectService.GetAllUsersInProject(projectId));
         }
 
         [HttpPut("{projectId}/active-sprint")]
-        [ServiceFilter(typeof(Filters.ProjectUrlBasedAuthorizationFilter))]
-        public async Task<IActionResult> ChangeActiveSprint(int pid, [FromBody] Models.DTOs.ActiveSprintChangeDto activeSprintChangeDto) {
-
-            int userId = Convert.ToInt32(HttpContext.Items["userId"]);
-
+        [ServiceFilter(typeof(ProjectUrlBasedAuthorizationFilter))]
+        public async Task<IActionResult> ChangeActiveSprint(int projectId, [FromBody] ActiveSprintChangeDto dto) {
             try {
                 // get the project object
-                var project = projectService.FindById(pid);
-                project.ActiveSprintId = activeSprintChangeDto.ActiveSprintId;
+                var project = projectService.FindById(projectId);
+                project.ActiveSprintId = dto.ActiveSprintId;
                 // Update it
                  await projectService.UpdateAsync(project);
                 return Ok(project);
             } catch (DbUpdateException e) {
                 return Unauthorized(new { message = e.Message });
             }
+        }
+
+        [HttpGet("{projectId}/active-sprint")]
+        [ServiceFilter(typeof(ProjectUrlBasedAuthorizationFilter))]
+        public async Task<IActionResult> GetActiveSprint(int projectId) {
+            Sprint sprint = await projectService.GetActiveSprint(projectId);
+            return Ok(sprint);
         }
     }
 }

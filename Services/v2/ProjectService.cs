@@ -43,5 +43,9 @@ namespace cumin_api.Services.v2 {
             return context.UserProjects.Any(x => x.ProjectId == projectId && x.UserId == userId);
         }
 
+        public async Task<Sprint> GetActiveSprint(int projectId) {
+            Project project =  await dbSet.Include(p => p.ActiveSprint).ThenInclude(s => s.Issues).FirstOrDefaultAsync(p => p.Id == projectId);
+            return project.ActiveSprint;
+        }
     }
 }
