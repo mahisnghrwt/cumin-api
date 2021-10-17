@@ -10,13 +10,17 @@ using cumin_api.Services;
 using cumin_api.Others;
 using System.Net;
 using cumin_api.Filters;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Http;
+using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 
 namespace cumin_api {
     public class Startup {
         private readonly string AllowSpecificOriginCorsPolicy = "AllowSpecificOriginCorsPolicy";
         private readonly string FrontendUrl = "http://localhost:3000";
 
-        public Startup(IConfiguration configuration) {
+        public Startup(IConfiguration configuration, IHostEnvironment enviroment) {
             Configuration = configuration;
         }
 
@@ -25,17 +29,12 @@ namespace cumin_api {
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services) {
             services.AddAutoMapper(typeof(Startup));
-            // added
-            services.AddHttpsRedirection(options =>
-            {
-                options.RedirectStatusCode = (int)HttpStatusCode.PermanentRedirect;
-                options.HttpsPort = 5001;
-            });
+
+            services.Configure<ForwardedHeadersOptions>(options => options.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto);
 
             services.AddCors(options =>
                 options.AddPolicy(AllowSpecificOriginCorsPolicy, builder => {
                     builder.WithOrigins(new[] { FrontendUrl }).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
-
                 })
             );
 
@@ -65,12 +64,22 @@ namespace cumin_api {
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, CuminApiContext dbContext, ILogger<Startup> logger) {
             if (env.IsDevelopment()) {
                 app.UseDeveloperExceptionPage();
             }
-            
-            app.UseHttpsRedirection();
+            else {
+                dbContext.Database.Migrate();
+            }
+
+            app.Use(async (context, next) => {
+                string headers = "";
+                foreach (var header in context.Request.Headers) {
+                    headers += String.Format("{0,-20}{1, -20}", header.Key, header.Value.ToString());
+                }
+                logger.LogDebug(headers);
+                await next();
+            });
 
             app.UseRouting();
 
