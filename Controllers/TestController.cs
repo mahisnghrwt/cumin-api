@@ -12,7 +12,7 @@ namespace cumin_api.Controllers {
 
         [HttpGet]
         public IActionResult Hello() {
-            return Ok(new { message = "Hello!" });
+            return Ok(new { message = "Not Hello!" });
         }
 
     }
