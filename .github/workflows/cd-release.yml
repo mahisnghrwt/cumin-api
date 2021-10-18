@@ -1,7 +1,7 @@
 on:
   push:
-    tags:        
-    - v1.*
+    branches:
+      - release
 
 jobs:
   build_and_push:
