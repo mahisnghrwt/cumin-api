@@ -36,4 +36,4 @@ jobs:
             cd /cumin
             docker container stop cumin-api
             docker image pull mahisnghrwt/cumin-api
-            docker run --name cumin-api-self --network cumin-prod_default --network-alias api cumin-api-self
+            docker run --name cumin-api --network cumin-prod_default --network-alias api mahisnghrwt/cumin-api
