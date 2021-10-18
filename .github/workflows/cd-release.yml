@@ -16,9 +16,9 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build image
-        run: docker build -t cumin-api .
+        run: docker build -t mahisnghrwt/cumin-api:latest .
       - name: Push image
-        run: docker push mahisnghrwt/cumin-api
+        run: docker push mahisnghrwt/cumin-api:latest
 
   deploy:
     name: Deploy
