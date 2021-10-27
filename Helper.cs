@@ -47,11 +47,11 @@ namespace cumin_api {
             }
         }
 
-        public static void Mapper<T>(JsonElement source, ref T target) {
+        public static void Mapper<T>(JsonElement source, ref T target, HashSet<string> omit = null) {
             foreach(var prop in source.EnumerateObject()) {
                 var propName = prop.Name.Substring(0, 1).ToUpper() + prop.Name.Substring(1);
                 var targetProp = typeof(T).GetProperty(propName);
-                if (targetProp != null) {
+                if (targetProp != null && (omit == null || !omit.Contains(propName))) {
                     targetProp.SetValue(target, JsonSerializer.Deserialize(prop.Value.GetRawText(), targetProp.PropertyType));
                 }
             }

@@ -55,7 +55,7 @@ namespace cumin_api.Controllers {
         public async Task<IActionResult> DeleteSprint(int projectId, int sprintId) {
             try {
                 var sprint = sprintService.Find(s => s.Id == sprintId && s.ProjectId == projectId);
-                await sprintService.Delete(sprint);
+                await sprintService.DeleteAsync(sprint);
                 return Ok();
             } catch (Exception e) {
                 throw e;

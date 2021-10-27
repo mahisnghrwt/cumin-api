@@ -1,5 +1,6 @@
 ﻿using cumin_api.Enums;
 using cumin_api.Models;
+using cumin_api.Models.DTOs;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -23,11 +24,10 @@ namespace cumin_api.Services.v2 {
             return project_.Entity;
         }
 
-        public IEnumerable<Project> GetAllProjectsForUser(int userId) {
+        public IEnumerable<UserProject> GetAllProjectsForUser(int userId) {
             return context.UserProjects
                 .Include(x => x.Project)
                 .Where(x => x.UserId == userId)
-                .Select(x => x.Project)
                 .ToList();
         }
 
@@ -46,6 +46,17 @@ namespace cumin_api.Services.v2 {
         public async Task<Sprint> GetActiveSprint(int projectId) {
             Project project =  await dbSet.Include(p => p.ActiveSprint).ThenInclude(s => s.Issues).FirstOrDefaultAsync(p => p.Id == projectId);
             return project.ActiveSprint;
+        }
+
+        public async Task LeaveProjectAsync(int projectId, int userId) {
+            var userProject = await context.UserProjects.FirstAsync(x => x.ProjectId == projectId && x.UserId == userId);
+            if (userProject == null)
+                throw new SimpleException($"User is not part of project. UserId: {userId}, ProjectId: {projectId}.");
+            if (userProject.UserRole == UserRole.ProjectManager)
+                throw new SimpleException($"User is Project Manager, hence cannot leave the project. Transfer role to another member to leave project without any conflicts.");
+            
+            context.UserProjects.Remove(userProject);
+            await context.SaveChangesAsync();
         }
     }
 }

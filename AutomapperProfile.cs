@@ -19,6 +19,12 @@ namespace cumin_api {
             CreateMap<Sprint, SprintBriefDto>();
             CreateMap<Epic, EpicBriefDto>();
             CreateMap<Issue, IssueDetailedDto>();
+            CreateMap<UserProject, ProjectDto>()
+            .ForMember(x => x.ProjectManagerId, y => y.MapFrom(z => z.UserId))
+            .ForMember(x => x.Id, y => y.MapFrom(z => z.ProjectId))
+            .ForMember(x => x.StartDate, y => y.MapFrom(z => z.Project.StartDate))
+            .ForMember(x => x.Name, y => y.MapFrom(z => z.Project.Name));
+            CreateMap<Project, ProjectDto>();
         }
     }
 }

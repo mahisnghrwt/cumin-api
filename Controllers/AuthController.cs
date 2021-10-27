@@ -4,6 +4,8 @@ using cumin_api.Models;
 using cumin_api.Attributes;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using AutoMapper;
+using cumin_api.Models.DTOs;
 
 namespace cumin_api.Controllers {
     [Route("api/v1/[controller]")]
@@ -11,10 +13,11 @@ namespace cumin_api.Controllers {
     public class AuthController : ControllerBase {
         private readonly Services.v2.UserService userService;
         private readonly Others.TokenHelper tokenHelper;
-
-        public AuthController(Services.v2.UserService userService, Others.TokenHelper tokenHelper) {
+        private readonly IMapper mapper;
+        public AuthController(IMapper mapper, Services.v2.UserService userService, Others.TokenHelper tokenHelper) {
             this.userService = userService;
             this.tokenHelper = tokenHelper;
+            this.mapper = mapper;
         }
 
         [HttpPost("register")]
@@ -25,7 +28,7 @@ namespace cumin_api.Controllers {
                 return Ok(user_);
             } catch (Exception e) {
                 Console.Error.WriteLine(e.Message);
-                return new StatusCodeResult(500);
+                return new ObjectResult((Object)new { message = "Cannot register!" }) { StatusCode = 500 };
             }
         }
 
@@ -36,9 +39,9 @@ namespace cumin_api.Controllers {
                 return new UnauthorizedObjectResult(new { message = "User not found or incorrect password."});
 
             string token = tokenHelper.GenerateToken(user.Id);
-            var user_ = userService.GetWithActiveProject(user.Id);
+            var userProject = userService.GetWithActiveProject(user.Id);
 
-            return Ok( new { user = user_, token = token } );
+            return Ok( new { user = userProject.User, project = userProject.Project == null ? null : mapper.Map<ProjectDto>(userProject), token = token } );
         }
 
         [CustomAuthorization]
@@ -46,7 +49,8 @@ namespace cumin_api.Controllers {
         public IActionResult ValidateToken() {
             int userId = Convert.ToInt32(HttpContext.Items["userId"]);
             try {
-                return Ok(userService.GetWithActiveProject(userId));
+                var userProject = userService.GetWithActiveProject(userId);
+                return Ok(new { user = userProject.User, project = userProject.Project == null ? null : mapper.Map<ProjectDto>(userProject)});
             } catch (SimpleException e) {
                 return Unauthorized(new { message = e.Message });
             } catch (DbUpdateException e) {

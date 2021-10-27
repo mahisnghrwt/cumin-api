@@ -45,7 +45,7 @@ namespace cumin_api.Services.v2 {
             }
         }
 
-        public async Task Delete(T entity) {
+        public async Task DeleteAsync(T entity) {
             dbSet.Remove(entity);
             await context.SaveChangesAsync();
         }
