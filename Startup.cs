@@ -19,6 +19,8 @@ namespace cumin_api {
     public class Startup {
         private readonly string AllowSpecificOriginCorsPolicy = "AllowSpecificOriginCorsPolicy";
         private readonly string FrontendUrl = "http://localhost:3000";
+        private readonly string ProductionFrontendUrl = "https://notjira.netlify.app";
+
 
         public Startup(IConfiguration configuration, IHostEnvironment enviroment) {
             Configuration = configuration;
@@ -34,7 +36,7 @@ namespace cumin_api {
 
             services.AddCors(options =>
                 options.AddPolicy(AllowSpecificOriginCorsPolicy, builder => {
-                    builder.WithOrigins(new[] { FrontendUrl }).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+                    builder.WithOrigins(new[] { FrontendUrl, ProductionFrontendUrl }).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
                 })
             );
 
